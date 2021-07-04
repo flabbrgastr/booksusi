@@ -1,0 +1,6 @@
+# ignore all logs
+*.log
+*.html
+
+# eventually exclude a file with !debug.html
+
