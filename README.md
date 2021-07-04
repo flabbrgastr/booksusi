@@ -12,3 +12,6 @@ ssh-add ~/.ssh/id_rsa
 clip < ~/.ssh/id_rsa.pub
 # Test connection with command 
 ssh -T git@github.com
+
+#check which branches are available
+git branch -v -a
