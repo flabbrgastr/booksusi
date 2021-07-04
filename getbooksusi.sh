@@ -5,6 +5,18 @@ user=$(whoami)
 #echo "$greeting $user"
 
 html="https://booksusi.com/service/analsex/?&city=wien&service=2&page="
+html0="https://booksusi.com/service/"
+html1="analsex"
+html2="/?&city=wien&page="
+# Anal
+# https://booksusi.com/service/analsex/?&city=wien&service=2&page=
+# Anal Natur
+# https://booksusi.com/service/anal_natur_no_condom/?&city=wien&service=12&page=
+# COF
+# https://booksusi.com/service/gesichtsbesamung_cum_on_face/?&city=wien&service=12&page=
+# CIM
+# https://booksusi.com/service/mundvollendung_cum_in_mouth/?&city=wien&service=13&page=
+
 
 #`wget --random-wait -r -p -e robots=off -U mozilla http://www.example.com
 

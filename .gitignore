@@ -1,6 +1,7 @@
 # ignore all logs
 *.log
 *.html
+test*
 
 /data
 
