@@ -8,8 +8,9 @@ html="https://booksusi.com/service/analsex/?&city=wien&service=2&page="
 
 #`wget --random-wait -r -p -e robots=off -U mozilla http://www.example.com
 
-home_dir=/home/${user}
-out_dir=${home_dir}/coding/data/booksusi_analsex_$(date +%Y-%m-%d_%H%M%S)
+# home_dir=/home/${user}
+# out_dir=${home_dir}/coding/data/booksusi_analsex_$(date +%Y-%m-%d_%H%M%S)
+out_dir=./data/booksusi_analsex_$(date +%Y-%m-%d_%H%M%S)
 out_file=booksusi
 
 #echo "$html1 $out_dir $out_file" 

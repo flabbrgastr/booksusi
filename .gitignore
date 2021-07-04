@@ -2,5 +2,7 @@
 *.log
 *.html
 
+/data
+
 # eventually exclude a file with !debug.html
 
