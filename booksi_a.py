@@ -45,6 +45,8 @@ if len(sys.argv) > 1:
 
     if (file_or_url == 'valid_file'):
         print('valid file: '+sys.argv[1])
+        with open(sys.argv[1],'r') as file:
+           content = file.read();
 
     elif (file_or_url == 'valid_url'):
         url = formaturl(sys.argv[1])
@@ -60,10 +62,13 @@ else:
     # defaulting to default url
     url = default_url
     print("defaulting to url: "+url)
+    page = requests.get(url)
+    if page.status_code == 200:
+       content = page.content
     file_or_url = is_file_or_url(url)
 
 
-sys.exit()
+#sys.exit()
 
 # URl to web scrap from.
 # in this example we web scrap graphics cards from Newegg.com
