@@ -12,3 +12,11 @@ ssh-add ~/.ssh/id_rsa
 clip < ~/.ssh/id_rsa.pub
 # Test connection with command 
 ssh -T git@github.com
+
+# git add
+git init
+git add *
+git commit -a -m 'Initial commit'
+git remote add origin git@github.com:flabbrgastr/booksusi.git
+
+git fetch
