@@ -15,3 +15,10 @@ ssh -T git@github.com
 
 #check which branches are available
 git branch -v -a
+# git add
+git init
+git add *
+git commit -a -m 'Initial commit'
+git remote add origin git@github.com:flabbrgastr/booksusi.git
+
+git fetch
