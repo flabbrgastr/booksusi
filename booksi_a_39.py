@@ -5,6 +5,7 @@ import sys
 import requests
 import validators
 import re
+import pandas as pd
 
 
 def formaturl(url):
@@ -45,8 +46,8 @@ if len(sys.argv) > 1:
 
     if (file_or_url == 'valid_file'):
         print('valid file: '+sys.argv[1])
-        with open(sys.argv[1],'r') as file:
-           content = file.read();
+        with open(sys.argv[1], 'r') as file:
+            content = file.read()
 
     elif (file_or_url == 'valid_url'):
         url = formaturl(sys.argv[1])
@@ -64,15 +65,20 @@ else:
     print("defaulting to url: "+url)
     page = requests.get(url)
     if page.status_code == 200:
-       content = page.content
+        content = page.content
     file_or_url = is_file_or_url(url)
 
 
-#sys.exit()
+# sys.exit()
 
 # URl to web scrap from.
 # in this example we web scrap graphics cards from Newegg.com
 
+# create empty pandas frame
+df = pd.DataFrame(columns=['Girl', 'Tel', 'Short',
+                  'Bezirk', 'Stadt', 'Strasse', 'Fans'])
+#girl_name, tel, '<', short, '>', 'aus', bezirk, stadt,
+#          strasse, 'hat', fancount, 'fans'
 
 # parses html into a soup data structure to traverse html
 # as if it were a json data type.
@@ -122,8 +128,22 @@ for girl in girls:
         short = ''
     # the notsoshort description as string
     tel = girl.find('a', {'class': 'pull-right'})['href']
+    
+    
+    gurl = girl.find('a', href=True)['href']
+    purl = girl.find('source', srcset=True)['srcset']
+    
 
-    # print girlname and short description
-    print(girl_name, tel, '<', short, '>', 'aus', bezirk, stadt,
-          strasse, 'hat', fancount, 'fans')
-    # Tel
+    df = df.append({'Girl': girl_name, 'Tel': tel, 'Short': short,
+#                    'Bezirk': bezirk, 'Stadt': stadt, 'Strasse': strasse, 'Fans': fancount
+                    'Bezirk': bezirk, 'Stadt': stadt, 'Strasse': strasse, 'Fans': fancount,
+		    'gurl': gurl, 'purl': purl
+                    }, ignore_index=True)
+#    print girlname and short description
+#    print(girl_name, tel, '<', short, '>', 'aus', bezirk, stadt,
+#    strasse, 'hat', fancount, 'fans')
+#    print('gurl: ', gurl)
+#    print('purl: ', purl)
+
+print(df)
+#df.to_csv('a.csv')
