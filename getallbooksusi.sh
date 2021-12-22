@@ -3,9 +3,9 @@
 #greeting="Welcome"
 user=$(whoami)
 #echo "$greeting $user"
-# Anal 5
+# Anal 6
 # https://booksusi.com/service/analsex/?&city=wien&service=2&page=
-# Anal Natur 2
+# Anal Natur 3
 # https://booksusi.com/service/anal_natur_no_condom/?&city=wien&service=12&page=
 # COF 7
 # https://booksusi.com/service/gesichtsbesamung_cum_on_face/?&city=wien&service=12&page=
@@ -24,7 +24,7 @@ args="${arg1} ${arg2} ${arg3} ${arg4} ${arg5}"
 echo "$args"
 
 declare -a html1arr=("analsex" "anal_natur_no_condom" "gesichtsbesamung_cum_on_face" "mundvollendung_cum_in_mouth")
-declare -a html_pages=(5 2 7 9)
+declare -a html_pages=(6 3 7 9)
 #declare -a html_pages=(1 1 1 1)
 
 datum=$(date +%Y-%m-%d_%H%M%S)
@@ -40,7 +40,7 @@ for i in 0 1 2 3; do
    echo "##.................................................##"
    echo "###   ${html1arr[i]}   ${html_pages[i]} pages"
    echo "##.................................................##"
-
+a
    out_dir=./data/booksusi_${html1arr[i]}_$datum
    arg_out=" -P"${out_dir}"/"
    # or do whatever with individual element of the array
@@ -51,5 +51,3 @@ for i in 0 1 2 3; do
      x=$(( $x + 1 ))
    done
 done
-
-
