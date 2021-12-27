@@ -36,6 +36,7 @@ def is_file_or_url(name_or_url):
 
 # default url
 default_url = "https://booksusi.com/service/analsex/?&city=wien&service=2&page="
+default_csv = "a.csv"
 
 
 # test if command line arguments are available
@@ -69,16 +70,25 @@ else:
     file_or_url = is_file_or_url(url)
 
 
-# sys.exit()
+# read csv into df
+#df = pd.read_csv(default_csv)  
+#print(df)
+
 
 # URl to web scrap from.
 # in this example we web scrap graphics cards from Newegg.com
 
 # create empty pandas frame
-df = pd.DataFrame(columns=['Girl', 'Tel', 'Short',
-                  'Bezirk', 'Stadt', 'Strasse', 'Fans'])
-#girl_name, tel, '<', short, '>', 'aus', bezirk, stadt,
-#          strasse, 'hat', fancount, 'fans'
+if (os.path.isfile(default_csv)):
+    df = pd.read_csv(default_csv, index_col = False)
+    print('Read csv: ',+len(df.index))
+#    print(df)
+else:
+    print('Create csv')
+    df = pd.DataFrame(columns=['Girl', 'Tel', 'Short',
+                  'Bezirk', 'Stadt', 'Strasse', 'Fans',
+                  'Gurl', 'Purl'])
+
 
 # parses html into a soup data structure to traverse html
 # as if it were a json data type.
@@ -90,7 +100,7 @@ girls = page_soup.findAll(
     "div", {"class": "girl-list-item", "data-type": "listing"})
 
 print('**********************************************************')
-print('***', len(girls), " Analgirls gefunden")
+print('***', len(girls), " girls found")
 print('**********************************************************')
 
 
@@ -137,7 +147,7 @@ for girl in girls:
     df = df.append({'Girl': girl_name, 'Tel': tel, 'Short': short,
 #                    'Bezirk': bezirk, 'Stadt': stadt, 'Strasse': strasse, 'Fans': fancount
                     'Bezirk': bezirk, 'Stadt': stadt, 'Strasse': strasse, 'Fans': fancount,
-		    'gurl': gurl, 'purl': purl
+		    'Gurl': gurl, 'Purl': purl
                     }, ignore_index=True)
 #    print girlname and short description
 #    print(girl_name, tel, '<', short, '>', 'aus', bezirk, stadt,
@@ -145,5 +155,6 @@ for girl in girls:
 #    print('gurl: ', gurl)
 #    print('purl: ', purl)
 
+df=df.drop_duplicates(subset='Tel', keep="last")
 print(df)
-#df.to_csv('a.csv')
+df.to_csv('a.csv', index = False)
