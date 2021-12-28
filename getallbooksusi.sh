@@ -48,6 +48,10 @@ a
    while [ $x -le ${html_pages[i]} ]; do
      wget ${args}$arg_out $html0${html1arr[i]}$html2$x
      mv ${out_dir}"/"index*$x.html ${out_dir}"/"index_${html1arr[i]}$x.html
+     rm ${out_dir}"/"index*$x.html
      x=$(( $x + 1 ))
    done
 done
+# cleaning up
+rm ${out_dir}"/*.orig"
+rm ${out_dir}"/banner*.jpg"
