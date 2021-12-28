@@ -36,7 +36,7 @@ def is_file_or_url(name_or_url):
 
 # default url
 default_url = "https://booksusi.com/service/analsex/?&city=wien&service=2&page="
-default_csv = "a.csv"
+default_csv = "b.csv"
 
 
 # test if command line arguments are available
@@ -46,11 +46,13 @@ if len(sys.argv) > 1:
     file_or_url = is_file_or_url(sys.argv[1])
 
     if (file_or_url == 'valid_file'):
+    # its a valid file
         print('valid file: '+sys.argv[1])
         with open(sys.argv[1], 'r') as file:
             content = file.read()
 
     elif (file_or_url == 'valid_url'):
+    # its a valid URL
         url = formaturl(sys.argv[1])
         print('valid url: '+url)
         # opens the connection and downloads html page from url
@@ -70,21 +72,13 @@ else:
     file_or_url = is_file_or_url(url)
 
 
-# read csv into df
-#df = pd.read_csv(default_csv)  
-#print(df)
-
-
-# URl to web scrap from.
-# in this example we web scrap graphics cards from Newegg.com
-
-# create empty pandas frame
+# create pandas structure
 if (os.path.isfile(default_csv)):
     df = pd.read_csv(default_csv, index_col = False)
     print('Read csv: ',+len(df.index))
 #    print(df)
 else:
-    print('Create csv')
+    print('Create new csv...')
     df = pd.DataFrame(columns=['Girl', 'Tel', 'Short',
                   'Bezirk', 'Stadt', 'Strasse', 'Fans',
                   'Gurl', 'Purl'])
@@ -95,7 +89,6 @@ else:
 page_soup = soup(content, "html.parser")
 
 wrap_container = page_soup.find("div", {"class": "container", "id": "wrap"})
-# girl_list = page_soup.find("div", {"class": "girl-list", "id": "girls"})
 girls = page_soup.findAll(
     "div", {"class": "girl-list-item", "data-type": "listing"})
 
@@ -108,53 +101,51 @@ left = '</strong>'
 right = '<a'
 
 for girl in girls:
-    # print(girl.div.a.text)  # girl name
+    # print(girl.div.a.text)  	    	    	# girl name
     girl_name = girl.select_one(
-        "div a:nth-of-type(1)").text.strip()  # girl name
-    girl.div.a['href']      # url
+        "div a:nth-of-type(1)").text.strip()  	# girl name
+    girl.div.a['href']      	    	    	# url
 
     # Adresse
-    girl.div.div.text  # addresse ganz
+    girl.div.div.text       	    	    	# addresse ganz
     stadt = girl.div.div.select_one(
-        "div a:nth-of-type(1)").text.strip()  # stadt
+        "div a:nth-of-type(1)").text.strip()  	# stadt
     bezirk = girl.div.div.select_one(
-        "div a:nth-of-type(2)").text.strip()  # bezirk
+        "div a:nth-of-type(2)").text.strip()  	# bezirk
     try:
-        # strasse not every girl has it
+            	    	    	    	    	# strasse not every girl has it
         strasse = girl.div.div.select_one("div a:nth-of-type(3)").text
     except:
         strasse = ''
     try:
-        # the fancount is not always there
+            	    	    	    	    	# the fancount is not always there
         fancount = girl.select_one("span[id*=girl-fancount]").text
     except:
         fancount = 0
     try:
-        # short_in = girls.select("div .girl-subtitle")  # the notsoshort description
+            	    	    	    	    	# the notsoshort description
         short_str = str(girl.select("div .girl-subtitle"))
         short = short_str[short_str.index(
             left)+len(left):short_str.index(right)].strip()
     except:
         short = ''
-    # the notsoshort description as string
+    	    	    	    	    	    	# the notsoshort description as string
     tel = girl.find('a', {'class': 'pull-right'})['href']
     
     
     gurl = girl.find('a', href=True)['href']
     purl = girl.find('source', srcset=True)['srcset']
     
-
+    # append the Girl in every loop
     df = df.append({'Girl': girl_name, 'Tel': tel, 'Short': short,
-#                    'Bezirk': bezirk, 'Stadt': stadt, 'Strasse': strasse, 'Fans': fancount
                     'Bezirk': bezirk, 'Stadt': stadt, 'Strasse': strasse, 'Fans': fancount,
 		    'Gurl': gurl, 'Purl': purl
                     }, ignore_index=True)
-#    print girlname and short description
-#    print(girl_name, tel, '<', short, '>', 'aus', bezirk, stadt,
-#    strasse, 'hat', fancount, 'fans')
-#    print('gurl: ', gurl)
-#    print('purl: ', purl)
 
+# drop duplicates, based on Column
 df=df.drop_duplicates(subset='Tel', keep="last")
-print(df)
-df.to_csv('a.csv', index = False)
+#print(df)
+print('Writing ', +len(df.index))
+#print('Writing ', +len(df.index) + ' lines in ',+default_csv)
+#df.to_csv('a.csv', index = False)
+df.to_csv(default_csv, index = False)
