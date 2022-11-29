@@ -23,7 +23,7 @@ args="${arg1} ${arg2} ${arg3} ${arg4} ${arg5}"
 
 declare -a html1arr=("analsex" "anal_natur_no_condom" "gesichtsbesamung_cum_on_face" "mundvollendung_cum_in_mouth")
 declare -a html_pages=(6 3 7 9)
-#declare -a html_pages=(1 1 1 1)  #for testing
+#declare -a html_pages=(1 0 0 0)  #for testing
 
 datum=$(date +%Y-%m-%d_%H%M%S)
 html0="https://booksusi.com/service/"
@@ -42,6 +42,7 @@ for i in 0 1 2 3; do
      wget ${args}$arg_out $html0${html1arr[i]}$html2$x
      echo -n "."
      mv ${out_dir}"/"index*$x.html ${out_dir}"/"${html1arr[i]}$x.html
+     sed -n -i '/<body>/,/<\/body>/p' ${out_dir}"/"${html1arr[i]}$x.html
      x=$(( $x + 1 ))
    done
    echo
@@ -54,4 +55,12 @@ rm *.jpg*
 echo "Contents of $(pwd):"
 ls
 #ls -1 | sed -e 's/\..*$//'
+cd ..//..
+
+python booksi_a_42.py d
+
+
+echo "syncing to drive"
+rclone -v sync .//data fgdrive:
+
 echo "finished, enjoy!"
