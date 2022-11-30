@@ -19,12 +19,14 @@ str_a1 = 'analsex'
 str_cof = 'cum_on_face'
 str_cim = 'cum_in_mouth'
 
+
 def formaturl(url):
     if not re.match('(?:http|ftp|https)://', url):
         return 'http://{}'.format(url)
     return url
 
 # default to latest directory
+
 
 def is_file_or_url(name_or_url):
     #    name_or_url = './'+name_or_url
@@ -45,9 +47,27 @@ def is_file_or_url(name_or_url):
     else:
         return 'none'
 
+
 def getNewestDir(rootdir):
-    return max([os.path.join(rootdir,d) for d in os.listdir(rootdir)], key=os.path.getmtime)
-   
+    dirs = [dI for dI in os.listdir(
+        rootdir) if os.path.isdir(os.path.join(rootdir, dI))]
+    dirs = [dir for dir in dirs if dir.startswith('2')]
+    dirs.sort(reverse=True)
+    return dirs[0]
+#    return max([os.path.join(rootdir, d) for d in os.listdir(rootdir)], key=os.path.getmtime)
+
+
+def getLastDir(rootdir):
+    dirs = [dI for dI in os.listdir(
+        rootdir) if os.path.isdir(os.path.join(rootdir, dI))]
+    dirs = [dir for dir in dirs if dir.startswith('2')]
+    dirs.sort(reverse=True)
+    if len(dirs) >= 1:
+        return dirs[1]
+    else:
+        return None
+
+
 def getAllFilesofType(dir, ftype):
     path = dir
     files = [f for f in os.listdir(path) if f.endswith(ftype)]
@@ -56,21 +76,22 @@ def getAllFilesofType(dir, ftype):
 
 
 def getGals(content, va1, va0, vcim, vcof):
-# parses html into a soup data structure to traverse html
-# as if it were a json data type.
-# only input is content
+    # parses html into a soup data structure to traverse html
+    # as if it were a json data type.
+    # only input is content
     tmp = []
     page_soup = soup(content, "html.parser")
 
-    wrap_container = page_soup.find("div", {"class": "container", "id": "wrap"})
+    wrap_container = page_soup.find(
+        "div", {"class": "container", "id": "wrap"})
     girls = page_soup.findAll(
         "div", {"class": "girl-list-item", "data-type": "listing"})
 
-    #sys.exit()
+    # sys.exit()
 
-    #print('**********************************************************')
+    # print('**********************************************************')
     print('*', len(girls), "g's")
-    #print('**********************************************************')
+    # print('**********************************************************')
 
     left = '</strong>'
     right = '<a'
@@ -83,33 +104,56 @@ def getGals(content, va1, va0, vcim, vcof):
 
         # Adresse
         girl.div.div.text       	    	    	# addresse ganz
-        stadt = girl.div.div.select_one(
-            "div a:nth-of-type(1)").text.strip()  	# stadt
-        bezirk = girl.div.div.select_one(
-            "div a:nth-of-type(2)").text.strip()  	# bezirk
+        node = girl.div.div.select_one("div a:nth-of-type(1)")
+        if node is not None:
+            stadt = node.text.strip()
+        else:
+            stadt = 'Wien'
+#        stadt = girl.div.div.select_one(
+#            "div a:nth-of-type(1)").text.strip()  	# stadt
+
+        node = girl.div.div.select_one("div a:nth-of-type(2)")  	# bezirk
+        if node is not None:
+            bezirk = node.text.strip()
+        else:
+            bezirk = '1000'
+
+#        bezirk = girl.div.div.select_one(
+#            "div a:nth-of-type(2)").text.strip()  	# bezirk
         try:
-                                                    # strasse not every girl has it
+            # strasse not every girl has it
             strasse = girl.div.div.select_one("div a:nth-of-type(3)").text
         except:
             strasse = ''
         try:
-                                                    # the fancount is not always there
+            # the fancount is not always there
             fancount = girl.select_one("span[id*=girl-fancount]").text
         except:
             fancount = 0
         try:
-                                                    # the notsoshort description
+            # the notsoshort description
             short_str = str(girl.select("div .girl-subtitle"))
             short = short_str[short_str.index(
                 left)+len(left):short_str.index(right)].strip()
         except:
             short = ''
-                                                    # the notsoshort description as string
-        tel = girl.find('a', {'class': 'pull-right'})['href']
-        
+            # the notsoshort description as string
+        node = girl.find('a', {'class': 'pull-right'})
+        if node is not None:
+            tel = node['href']
+        else:
+            tel = 'None'
+#        tel = girl.find('a', {'class': 'pull-right'})['href']
+
         gurl = girl.find('a', href=True)['href']
-        purl = girl.find('source', srcset=True)['srcset']
-        
+
+        node = girl.find('source', srcset=True)
+        if node is not None:
+            purl = node['srcset']
+        else:
+            purl = None
+        #purl = girl.find('source', srcset=True)['srcset']
+
         # todo add service to gurl, then merge df
 
     # append the Girl in every loop
@@ -122,7 +166,6 @@ def getGals(content, va1, va0, vcim, vcof):
     return tmp
 
 
-
 # test if command line arguments are available
 if len(sys.argv) > 1:
 
@@ -131,18 +174,20 @@ if len(sys.argv) > 1:
 
     if (sys.argv[1] == 'd'):  # Option d for default dir
         newestDir = getNewestDir(datadir)
-        allFiles = getAllFilesofType(newestDir, '.html')
-        print('d:', newestDir)
+        #lastDir = getLastDir(datadir)
+        allFiles = getAllFilesofType(datadir+'/'+newestDir, '.html')
+        print('d0:' + newestDir)  # +'d1:'+lastDir)
+
 #        with open(newestDir+'/'+allFiles[1], 'r') as file:
 #            content = file.read()
     elif (file_or_url == 'valid_file'):
-    # its a valid file
+        # its a valid file
         print('valid file: '+sys.argv[1])
         with open(sys.argv[1], 'r') as file:
             content = file.read()
 
     elif (file_or_url == 'valid_url'):
-    # its a valid URL
+        # its a valid URL
         url = formaturl(sys.argv[1])
         print('valid url: '+url)
         # opens the connection and downloads html page from url
@@ -164,40 +209,40 @@ else:
 
 # check if csv exists, put into pandas structure df
 default_csv = newestDir+'/'+default_csv
-#print(default_csv)
-#sys.exit()
+# print(default_csv)
+# sys.exit()
 
 if (os.path.isfile(default_csv)):
-    df = pd.read_csv(default_csv, index_col = False)
-    print('Read csv: ',+len(df.index))
+    df = pd.read_csv(default_csv, index_col=False)
+    print('Read csv: ', +len(df.index))
 #    print(df)
 else:
-# create a new csv and pandas
+    # create a new csv and pandas
     print('Create new csv...')
     df = pd.DataFrame(columns=['Girl', 'Tel', 'Short',
-                  'Bezirk', 'Stadt', 'Strasse', 'Fans',
-                  'Gurl', 'Purl', 'a1', 'a0','cim','cof'])
+                               'Bezirk', 'Stadt', 'Strasse', 'Fans',
+                               'Gurl', 'Purl', 'a1', 'a0', 'cim', 'cof'])
 
 
 # open all content from d
 if (sys.argv[1] == 'd'):  # Option d for default dir
     for f in allFiles:
-        with open(newestDir+'/'+f, 'r') as file:
-            print (f)
+        with open(datadir+'/' + newestDir+'/'+f, 'r') as file:
+            print(f)
 #            content = file.read()
             tmp = getGals(file.read(),  # file
-                str_a1 in f,            # service args
-                str_a0 in f,
-                str_cim in f,
-                str_cof in f)
-            df = df.append( tmp )
-            
+                          str_a1 in f,            # service args
+                          str_a0 in f,
+                          str_cim in f,
+                          str_cof in f)
+            df = df.append(tmp)
+
 else:
     tmp = getGals(content)
-    df = df.append( tmp )
+    df = df.append(tmp)
 # drop duplicates, based on Column
 
-#df = df.drop_duplicates(subset=['Tel','Girl'], keep="last") # drop gals with same phone numbers, ie multi service gals. this should be merged
+# df = df.drop_duplicates(subset=['Tel','Girl'], keep="last") # drop gals with same phone numbers, ie multi service gals. this should be merged
 
 
 # cleanup df
@@ -205,15 +250,14 @@ else:
 print('Writing ', +len(df.index))
 #print('Writing ', +len(df.index) + ' lines in ',+default_csv)
 #df.to_csv('a.csv', index = False)
-df=df.sort_values(by=['Girl'], ascending=True)
+df = df.sort_values(by=['Girl'], ascending=True)
 #df = df.groupby(['Girl','Tel']).max()
-df.to_csv(default_csv, index = False)
-print(df)
-print('DupliTels:',len(df['Tel'])-len(df['Tel'].drop_duplicates()))
-df.to_csv(default_csv, index = False)
+df.to_csv(datadir+'/'+default_csv, index=False)
+# print(df)
+print('Comprehending: ', len(df['Tel'])-len(df['Tel'].drop_duplicates()))
+df.to_csv(datadir+'/'+default_csv, index=False)
 
-################ CLEANUP
-grp = df.groupby(['Girl','Tel'], as_index=False).max()
+# CLEANUP
+grp = df.groupby(['Girl', 'Tel'], as_index=False).max()
 print(grp)
-grp.to_csv(newestDir+'/'+'c.csv', index= False )
-
+grp.to_csv(datadir+'/'+newestDir+'/'+'c.csv', index=False)
