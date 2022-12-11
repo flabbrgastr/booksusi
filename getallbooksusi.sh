@@ -22,7 +22,7 @@ arg5="--convert-links --random-wait"
 args="${arg1} ${arg2} ${arg3} ${arg4} ${arg5}"
 
 declare -a html1arr=("analsex" "anal_natur_no_condom" "gesichtsbesamung_cum_on_face" "mundvollendung_cum_in_mouth")
-declare -a html_pages=(6 3 7 9)
+#declare -a html_pages=(9 4 10 12)
 #declare -a html_pages=(1 0 0 0)  #for testing
 
 datum=$(date +%Y-%m-%d_%H%M%S)
@@ -34,16 +34,19 @@ echo "Downloading [ ${html1arr[@]} ] into ./data/$datum..."
 
 #for i in "${html1arr[@]}"
 for i in 0 1 2 3; do
-   echo -n "${html1arr[i]} ${html_pages[i]}"
+   echo -n "${html1arr[i]} "
    out_dir=./data/$datum
    arg_out=" -P"${out_dir}"/"
    x=1
-   while [ $x -le ${html_pages[i]} ]; do
-     wget ${args}$arg_out $html0${html1arr[i]}$html2$x
-     echo -n "."
-     mv ${out_dir}"/"index*$x.html ${out_dir}"/"${html1arr[i]}$x.html
-     sed -n -i '/<body>/,/<\/body>/p' ${out_dir}"/"${html1arr[i]}$x.html
-     x=$(( $x + 1 ))
+   Gals=25
+   while [ $Gals -ge 25 ]; do
+      wget ${args}$arg_out $html0${html1arr[i]}$html2$x
+      file=${out_dir}"/"${html1arr[i]}$x.html
+      mv ${out_dir}"/"index*$x.html $file
+      sed -n -i '/<body>/,/<\/body>/p' ${out_dir}"/"${html1arr[i]}$x.html
+      Gals=$(grep -o "listing" $file | wc -l)
+      echo -n "$Gals."
+      x=$(( $x + 1 ))
    done
    echo
 done
@@ -57,10 +60,17 @@ ls
 #ls -1 | sed -e 's/\..*$//'
 cd ..//..
 
-python booksi_a_42.py d
+
+#deleta all directories older than 3 days
+# find ./data/ -type d -ctime +3 -exec rm -rf {} +
+
+# python booksi_a_42.py d
 
 
-echo "syncing to drive"
-rclone -v sync .//data fgdrive:
+
+#echo "rsyncing to drive"
+#sleep 2s
+rclone -v copy ./data/$datum fgdrive:/$datum 
+#--max-age 1d
 
 echo "finished, enjoy!"
