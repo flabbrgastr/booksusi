@@ -22,7 +22,7 @@ html2="/?&city=wien&page="
 
 # home_dir=/home/${user}
 # out_dir=${home_dir}/coding/data/booksusi_analsex_$(date +%Y-%m-%d_%H%M%S)
-out_dir=./data/booksusi_analsex_$(date +%Y-%m-%d_%H%M%S)
+out_dir=./data/$(date +%Y-%m-%d_%H%M%S)
 out_file=booksusi
 
 #echo "$html1 $out_dir $out_file" 
@@ -44,5 +44,9 @@ for i in 1 2 3 4 5 6; do
 #    wget --output-document=${out_dir}/${out_file}_$i.html ${html}$i
 #    wget ${args} --output-document=${out_file}_$i.html ${html}$i
     wget ${args} ${html}$i
-    cp ${out_dir}"/"index*$i.html ${out_dir}"/"index_$i.html
+    cp ${out_dir}"/"index*$i.html ${out_dir}"/"$html1$i.html
 done
+
+cd $out_dir
+pwd
+
