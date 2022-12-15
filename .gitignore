@@ -8,5 +8,6 @@ test*
 __*
 !sampledata/booksusi*/index_*.html
 *.csv
+*.save
 # eventually exclude a file with !debug.html
 
