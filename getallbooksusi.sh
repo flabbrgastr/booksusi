@@ -20,10 +20,10 @@ arg3="-U mozilla"
 arg4="-p -nH -nd"
 arg5="--convert-links --random-wait"
 args="${arg1} ${arg2} ${arg3} ${arg4} ${arg5}"
-
+GalsinPage=25
 declare -a html1arr=("analsex" "anal_natur_no_condom" "gesichtsbesamung_cum_on_face" "mundvollendung_cum_in_mouth")
-#declare -a html_pages=(9 4 10 12)
-#declare -a html_pages=(1 0 0 0)  #for testing
+
+Testing=0
 
 datum=$(date +%Y-%m-%d_%H%M%S)
 html0="https://booksusi.com/service/"
@@ -39,12 +39,13 @@ for i in 0 1 2 3; do
    arg_out=" -P"${out_dir}"/"
    x=1
    Gals=25
-   while [ $Gals -ge 25 ]; do
+   while [ $Gals -ge ${GalsinPage} ]; do
       wget ${args}$arg_out $html0${html1arr[i]}$html2$x
       file=${out_dir}"/"${html1arr[i]}$x.html
       mv ${out_dir}"/"index*$x.html $file
       sed -n -i '/<body>/,/<\/body>/p' ${out_dir}"/"${html1arr[i]}$x.html
       Gals=$(grep -o "listing" $file | wc -l)
+      Gals=$(( $Gals - $Testing ))
       echo -n "$Gals."
       x=$(( $x + 1 ))
    done
@@ -70,7 +71,7 @@ cd ..//..
 
 #echo "rsyncing to drive"
 #sleep 2s
-rclone -v copy ./data/$datum fgdrive:/$datum 
+rclone -v copy ./data/$datum fgdrive:/$datum
 #--max-age 1d
 
 echo "finished, enjoy!"
