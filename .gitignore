@@ -5,8 +5,8 @@
 test*
 .*
 /data
-
+__*
 !sampledata/booksusi*/index_*.html
-
+*.csv
 # eventually exclude a file with !debug.html
 
