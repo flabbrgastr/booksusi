@@ -15,15 +15,13 @@ user=$(whoami)
 
 # wget args
 arg1="-e robots=off"
-arg2="-q -k -K --adjust-extension"
+arg2="-q -k -K --adjust-extension -I /files"
 arg3="-U mozilla"
-arg4="-p -nH -nd -H --domain=images.booksusi.com "
+arg4="-p -nH -nd"
 arg5="--convert-links --random-wait"
 args="${arg1} ${arg2} ${arg3} ${arg4} ${arg5}"
-GalsinPage=23
-#declare -a html1arr=("anal_natur_no_condom")
-#declare -a html1arr=("analsex" "anal_natur_no_condom" "gesichtsbesamung_cum_on_face" "mundvollendung_cum_in_mouth")
-declare -a html1arr=("analsex" "anal_natur_no_condom")
+GalsinPage=25
+declare -a html1arr=("analsex" "anal_natur_no_condom" "gesichtsbesamung_cum_on_face" "mundvollendung_cum_in_mouth")
 
 Testing=0
 
@@ -31,48 +29,63 @@ datum=$(date +%Y-%m-%d_%H%M%S)
 html0="https://booksusi.com/service/"
 html2="/?&city=wien&page="
 
-#echo "Getallbooksusi Page Downloading Script"
-echo "Downloading [ ${html1arr[@]} ]"
+echo "Getallbooksusi Page Downloading Script"
+echo "Downloading [ ${html1arr[@]} ] into ./data/$datum..."
 
-for i in "${html1arr[@]}"; do
-#for i in 0 1; do
-   echo -n "getting $i "
+#for i in "${html1arr[@]}"
+for i in 0 1 2 3; do
+   echo -n "${html1arr[i]} "
    out_dir=./data/$datum
    arg_out=" -P"${out_dir}"/"
    x=1
-   Gals=$GalsinPage
+   Gals=25
+<<<<<<< HEAD
+   while [ $Gals -ge 25 ]; do
+=======
    while [ $Gals -ge ${GalsinPage} ]; do
-      wget ${args}$arg_out $html0$i$html2$x
-      file=${out_dir}"/"$i$x.html
+>>>>>>> b6f4af4 (updates)
+      wget ${args}$arg_out $html0${html1arr[i]}$html2$x
+      file=${out_dir}"/"${html1arr[i]}$x.html
       mv ${out_dir}"/"index*$x.html $file
-      sed -n -i '/<body>/,/<\/body>/p' ${out_dir}"/"$i$x.html
+      sed -n -i '/<body>/,/<\/body>/p' ${out_dir}"/"${html1arr[i]}$x.html
       Gals=$(grep -o "listing" $file | wc -l)
+<<<<<<< HEAD
+      echo -n "$Gals."
+      x=$(( $x + 1 ))
+=======
       Gals=$(( $Gals - $Testing ))
       echo -n "$Gals."
       x=$(( $x + 1 ))
 
+>>>>>>> b6f4af4 (updates)
    done
    echo
 done
-
 cd $out_dir
 echo "cleaning up..."
-rm *.orig *.svg *.css *.css?* *.js?* *.jpg *.png *.[0-9] *.[0-9][0-9] 2>/dev/null
+rm *.orig
+rm *.jpg*
+#rm -v !"*.html"
+echo "Contents of $(pwd):"
+ls
+#ls -1 | sed -e 's/\..*$//'
 cd ..//..
 
-#delete all directories older than 3 days
+
+#deleta all directories older than 3 days
 # find ./data/ -type d -ctime +3 -exec rm -rf {} +
 
 # python booksi_a_42.py d
 
-# renamin images
-./renamejpgs.sh $out_dir
-cd ./data/
-echo tar $datum/ to datum.tar.gz
-tar -zvcf $datum.tar.gz $datum/
-rm -rf $datum/
 
-echo rcloning to gdrive
-rclone  copy $datum.tar.gz fgdrive:/
-cd ..
+
+#echo "rsyncing to drive"
+#sleep 2s
+<<<<<<< HEAD
+rclone -v copy ./data/$datum fgdrive:/$datum 
+=======
+rclone -v copy ./data/$datum fgdrive:/$datum
+>>>>>>> b6f4af4 (updates)
+#--max-age 1d
+
 echo "finished, enjoy!"
