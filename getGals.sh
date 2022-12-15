@@ -20,7 +20,7 @@ arg3="-U mozilla"
 arg4="-p -nH -nd -H --domain=images.booksusi.com "
 arg5="--convert-links --random-wait"
 args="${arg1} ${arg2} ${arg3} ${arg4} ${arg5}"
-GalsinPage=25
+GalsinPage=23
 #declare -a html1arr=("anal_natur_no_condom")
 #declare -a html1arr=("analsex" "anal_natur_no_condom" "gesichtsbesamung_cum_on_face" "mundvollendung_cum_in_mouth")
 declare -a html1arr=("analsex" "anal_natur_no_condom")
@@ -40,7 +40,7 @@ for i in "${html1arr[@]}"; do
    out_dir=./data/$datum
    arg_out=" -P"${out_dir}"/"
    x=1
-   Gals=25
+   Gals=$GalsinPage
    while [ $Gals -ge ${GalsinPage} ]; do
       wget ${args}$arg_out $html0$i$html2$x
       file=${out_dir}"/"$i$x.html
