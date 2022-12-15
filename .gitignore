@@ -3,7 +3,7 @@
 *.html
 *.orig
 test*
-
+.*
 /data
 
 !sampledata/booksusi*/index_*.html
