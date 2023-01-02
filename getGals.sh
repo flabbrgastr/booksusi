@@ -56,7 +56,7 @@ for i in "${html1arr[@]}"; do
 done
 
 cd $out_dir
-echo "cleaning up..."
+#echo "cleaning up..."
 rm *.orig *.svg *.css *.css?* *.js?* *.jpg *.png *.[0-9] *.[0-9][0-9] 2>/dev/null
 cd ..//..
 
@@ -69,7 +69,7 @@ cd ..//..
 ./renamejpgs.sh $out_dir
 cd ./data/
 echo tar $datum/ to datum.tar.gz
-tar -zvcf $datum.tar.gz $datum/
+tar -zcf $datum.tar.gz $datum/
 rm -rf $datum/
 
 echo rcloning to gdrive
