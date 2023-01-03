@@ -22,24 +22,27 @@ arg5="--convert-links --random-wait"
 args="${arg1} ${arg2} ${arg3} ${arg4} ${arg5}"
 GalsinPage=23
 #declare -a html1arr=("anal_natur_no_condom")
-#declare -a html1arr=("analsex" "anal_natur_no_condom" "gesichtsbesamung_cum_on_face" "mundvollendung_cum_in_mouth")
-declare -a html1arr=("analsex" "anal_natur_no_condom")
+declare -a html1arr=("analsex" "anal_natur_no_condom" "gesichtsbesamung_cum_on_face" "mundvollendung_cum_in_mouth")
+#declare -a html1arr=("analsex" "anal_natur_no_condom")
 
 Testing=0
 
-datum=$(date +%Y-%m-%d_%H%M%S)
 html0="https://booksusi.com/service/"
 html2="/?&city=wien&page="
+sumGals=0
 
-#echo "Getallbooksusi Page Downloading Script"
-echo "Downloading [ ${html1arr[@]} ]"
+datum=$(date +%Y-%m-%d_%H%M%S)
+out_dir=./data/$datum
+arg_out=" -P"${out_dir}"/"
+
+echo "GetGals $datum"
+echo "[ ${html1arr[@]} ]"
+echo
 
 for i in "${html1arr[@]}"; do
-#for i in 0 1; do
-   echo -n "getting $i "
-   out_dir=./data/$datum
-   arg_out=" -P"${out_dir}"/"
+   echo -n "$i "
    x=1
+   sumGals=0
    Gals=$GalsinPage
    while [ $Gals -ge ${GalsinPage} ]; do
       wget ${args}$arg_out $html0$i$html2$x
@@ -48,15 +51,17 @@ for i in "${html1arr[@]}"; do
       sed -n -i '/<body>/,/<\/body>/p' ${out_dir}"/"$i$x.html
       Gals=$(grep -o "listing" $file | wc -l)
       Gals=$(( $Gals - $Testing ))
-      echo -n "$Gals."
+      sumGals=$(( $Gals + $sumGals ))
+#      echo -n "$Gals."
+      echo -n "."
       x=$(( $x + 1 ))
 
    done
-   echo
+   echo "$sumGals"
 done
 
+echo "cleaning up"
 cd $out_dir
-#echo "cleaning up..."
 rm *.orig *.svg *.css *.css?* *.js?* *.jpg *.png *.[0-9] *.[0-9][0-9] 2>/dev/null
 cd ..//..
 
@@ -68,11 +73,11 @@ cd ..//..
 # renamin images
 ./renamejpgs.sh $out_dir
 cd ./data/
-echo tar $datum/ to datum.tar.gz
+#echo tar $datum/ to datum.tar.gz
 tar -zcf $datum.tar.gz $datum/
 rm -rf $datum/
 
-echo rcloning to gdrive
+echo "rcloning to gdrive"
 rclone  copy $datum.tar.gz fgdrive:/
 cd ..
 echo "finished, enjoy!"
