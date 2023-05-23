@@ -16,36 +16,78 @@ if [[ "$1" == "--h" || "$1" == "-h" ]]; then
     exit 0
 fi
 
+# Read options from config file into an array
+#mapfile -t html1arr < gals.config
+# Read lines within [htmls] section until the last line or first empty line
+declare -a htmls_lines=()
+htmls_found=false
 
-#greeting="Welcome"
+while IFS= read -r line || [[ -n "$line" ]]
+do
+    # Check for section header [htmls]
+    if [[ $line == "[htmls]" ]]; then
+        htmls_found=true
+        continue
+    fi
+    # Check if [htmls] section is found and store lines until the last line or first empty line
+    if [ "$htmls_found" = true ]; then
+        if [[ -z "$line" ]]; then
+            break  # Exit the loop when encountering an empty line
+        fi
+        html1arr+=("$line")
+    fi
+done < gals.conf
+
+declare -A variables
+variables_section=false
+while IFS='=' read -r key value || [[ -n "$key" ]]
+do
+    # Check for section header [variables]
+    if [[ $key == "[variables]" ]]; then
+        variables_section=true
+        continue
+    fi
+    # Check if in [variables] section and process variable assignments
+    if [ "$variables_section" = true ]; then
+        # Skip comments and empty lines
+        if [[ $key =~ ^\s*# ]] || [[ -z "$key" ]]; then
+            continue
+        fi
+        # Trim leading/trailing whitespace from key and value
+        key=${key// /}
+        value=${value// /}
+        # Assign variable
+        variables["$key"]="$value"
+    fi
+done < gals.conf
+
+# Print the variables
+for key in "${!variables[@]}"
+do
+    value="${variables[$key]}"
+    echo "$key=$value"
+done
+
 user=$(whoami)
-#echo "$greeting $user"
-# Anal 6
-# https://booksusi.com/service/analsex/?&city=wien&service=2&page=
-# Anal Natur 3
-# https://booksusi.com/service/anal_natur_no_condom/?&city=wien&service=12&page=
-# COF 7
-# https://booksusi.com/service/gesichtsbesamung_cum_on_face/?&city=wien&service=12&page=
-# CIM 9
-# https://booksusi.com/service/mundvollendung_cum_in_mouth/?&city=wien&service=13&page=
-
 
 # wget args
 arg1="-e robots=off"
 arg2="-q -k -K --adjust-extension"
 arg3="-U mozilla"
+
 # Check if the command-line argument is "-img"
 if [ "$1" = "-i" ] || [ "$2" = "-i" ] || [ "$3" = "-i" ]; then
    arg4="-p -nH -nd -H --domain=images.booksusi.com "
    echo "include images"
 else
    arg4="-nH -nd"
-   echo "no images"
 fi
+
 #arg4="-p -nH -nd -H --domain=images.booksusi.com "
 #arg4="-nH -nd "
 arg5="--convert-links --random-wait"
 args="${arg1} ${arg2} ${arg3} ${arg4} ${arg5}"
+
 # wget args
 #arg1="-e robots=off": This argument tells wget to ignore the robots.txt file on the server, which is a file that website owners use to control which parts of their site can be accessed by web crawlers. By setting robots=off, wget will not respect any crawling restrictions specified in the robots.txt file.
 #
@@ -70,14 +112,23 @@ args="${arg1} ${arg2} ${arg3} ${arg4} ${arg5}"
 
 
 # when less then GalsinPage then it is assumed to be last page
-GalsinPage=23
+#GalsinPage=23
+GalsinPage="${variables[GalsinPage]}"
+
 #declare -a html1arr=("analsex" "anal_natur_no_condom" "gesichtsbesamung_cum_on_face" "mundvollendung_cum_in_mouth")
 # Check for the -a argument
 if [ "$1" = "-a" ] || [ "$2" = "-a" ] || [ "$3" = "-a" ]; then
    # anal only
-   declare -a html1arr=("analsex" "anal_natur_no_condom")
-else
-   declare -a html1arr=("analsex" "anal_natur_no_condom" "gesichtsbesamung_cum_on_face" "mundvollendung_cum_in_mouth")
+   keyword="an"
+   filtered_arr=()
+   for option in "${html1arr[@]}"
+   do
+      if [[ $option == *"$keyword"* ]]; then
+        filtered_arr+=("$option")
+      fi
+   done
+   # Update html1arr with filtered_arr values
+   html1arr=("${filtered_arr[@]}")
 fi
 
 # for testing
@@ -88,15 +139,17 @@ else
 fi
 
 
-html0="https://booksusi.com/service/"
-html2="/?&city=wien&page="
+#html0="https://booksusi.com/service/"
+#html2="/?&city=wien&page="
+html0="${variables[html0]}"
+html2="${variables[html2]}"
 sumGals=0
 
 datum=$(date +%Y-%m-%d_%H%M%S)
 out_dir=./data/$datum
 arg_out=" -P"${out_dir}"/"
 
-echo "GetGals $datum"
+echo "Getting Gals on $datum"
 echo "[ ${html1arr[@]} ]"
 echo
 
