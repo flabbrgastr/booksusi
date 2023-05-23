@@ -6,7 +6,9 @@ show_help() {
     echo "Options:"
     echo "  -h        Display this help information"
     echo "  -i        Include images"
-    echo "  -a        Anal only"
+    echo "  -a        a only"
+    echo "  -l        local tar storage"
+    echo "  -f        local folder storage"
     # Add more options and their descriptions as needed
 }
 
@@ -61,12 +63,21 @@ do
     fi
 done < gals.conf
 
-# Print the variables
-for key in "${!variables[@]}"
-do
-    value="${variables[$key]}"
-    echo "$key=$value"
-done
+# Testmode
+#if [ "$1" = "-t" ] || [ "$2" = "-t" ] || [ "$3" = "-t" ]; then
+if [[ "$*" == *"-t"* ]]; then
+   echo "Testmode"
+  Testing=10
+  # Print the variables
+  for key in "${!variables[@]}"
+  do
+      value="${variables[$key]}"
+      echo "$key=$value"
+  done
+else
+  Testing=0
+fi
+
 
 user=$(whoami)
 
@@ -74,33 +85,25 @@ user=$(whoami)
 arg1="-e robots=off"
 arg2="-q -k -K --adjust-extension"
 arg3="-U mozilla"
-
+if [[ "$*" == *"-i"* ]]; then
 # Check if the command-line argument is "-img"
-if [ "$1" = "-i" ] || [ "$2" = "-i" ] || [ "$3" = "-i" ]; then
-   arg4="-p -nH -nd -H --domain=images.booksusi.com "
+   arg4="-nH -nd -p -H ${variables[arg4i]} "
    echo "include images"
 else
    arg4="-nH -nd"
 fi
-
-#arg4="-p -nH -nd -H --domain=images.booksusi.com "
-#arg4="-nH -nd "
 arg5="--convert-links --random-wait"
 args="${arg1} ${arg2} ${arg3} ${arg4} ${arg5}"
 
 # wget args
 #arg1="-e robots=off": This argument tells wget to ignore the robots.txt file on the server, which is a file that website owners use to control which parts of their site can be accessed by web crawlers. By setting robots=off, wget will not respect any crawling restrictions specified in the robots.txt file.
-#
 #arg2="-q -k -K --adjust-extension": This argument consists of several options:
-#
 #-q stands for quiet mode, which makes wget less verbose and reduces the amount of output displayed during the download.
 #-k enables the conversion of the links in the downloaded HTML files so that they point to local files instead of the original URLs. This is useful for offline browsing or creating a local mirror of a website.
 #-K forces the preservation of the original file suffix in case the server modifies it during download.
 #--adjust-extension ensures that the file extension of downloaded files matches the actual content type, in case the server response doesn't provide an appropriate extension.
 #arg3="-U mozilla": This argument sets the User-Agent header for the HTTP requests made by wget to "mozilla". The User-Agent header identifies the client (in this case, wget) to the server. By setting it to "mozilla", wget emulates the behavior of the Mozilla web browser, which may be useful to handle certain server responses that are browser-specific.
-#
 #arg4="-p -nH -nd -H --domain=images.book.com ": This argument contains the following options:
-#
 #-p enables the download of all necessary files to display an HTML page properly, including CSS, JavaScript, and images.
 #-nH prevents the creation of a directory hierarchy in the local filesystem. By default, wget creates a directory structure that mimics the server's structure. With this option, all files are downloaded to the current directory.
 #-nd disables the creation of directories altogether, ensuring that all downloaded files are saved directly in the current directory.
@@ -111,13 +114,8 @@ args="${arg1} ${arg2} ${arg3} ${arg4} ${arg5}"
 #--random-wait adds a random delay between requests to the server, which can help to avoid overloading the server or getting blocked for making too many consecutive requests.
 
 
-# when less then GalsinPage then it is assumed to be last page
-#GalsinPage=23
-GalsinPage="${variables[GalsinPage]}"
-
-#declare -a html1arr=("analsex" "anal_natur_no_condom" "gesichtsbesamung_cum_on_face" "mundvollendung_cum_in_mouth")
 # Check for the -a argument
-if [ "$1" = "-a" ] || [ "$2" = "-a" ] || [ "$3" = "-a" ]; then
+if [[ "$*" == *"-a"* ]]; then
    # anal only
    keyword="an"
    filtered_arr=()
@@ -131,27 +129,17 @@ if [ "$1" = "-a" ] || [ "$2" = "-a" ] || [ "$3" = "-a" ]; then
    html1arr=("${filtered_arr[@]}")
 fi
 
-# for testing
-if [ "$1" = "-t" ] || [ "$2" = "-t" ] || [ "$3" = "-t" ]; then
-  Testing=10
-else
-  Testing=0
-fi
-
-
-#html0="https://booksusi.com/service/"
-#html2="/?&city=wien&page="
+# when less then GalsinPage then it is assumed to be last page
+GalsinPage="${variables[GalsinPage]}"
 html0="${variables[html0]}"
 html2="${variables[html2]}"
-sumGals=0
-
 datum=$(date +%Y-%m-%d_%H%M%S)
 out_dir=./data/$datum
 arg_out=" -P"${out_dir}"/"
 
 echo "Getting Gals on $datum"
 echo "[ ${html1arr[@]} ]"
-echo
+echo ""
 
 for i in "${html1arr[@]}"; do
    echo -n "$i "
@@ -179,8 +167,8 @@ cd $out_dir
 rm *.orig *.svg *.css *.css?* *.js?* *.jpg *.png *.[0-9] *.[0-9][0-9] 2>/dev/null
 cd ..//..
 
-#delete all directories older than 30 days
-find ./data/ -type d -ctime +30 -exec rm -rf {} +
+#delete all directories and files older than N days
+find ./data/ -mtime ${variables[N]} -delete
 
 # python booksi_a_42.py d
 
@@ -189,15 +177,20 @@ find ./data/ -type d -ctime +30 -exec rm -rf {} +
 cd ./data/
 #echo tar $datum/ to datum.tar.gz
 tar -zcf $datum.tar.gz $datum/
-rm -rf $datum/
-# Check if either of the two variables equals "-t"
+
+if [[ "$*" != *"-f"* ]]; then # if not local storage
+   rm -rf $datum/             # delete folder to save space on local storage
+fi
+
 if [ "$Testing" != 0 ]; then
   echo "testmode"
 else
-  echo "rcloning to gdrive"
-  rclone  copy $datum.tar.gz fgdrive:/
-  cd ..
-  echo "finished, enjoy!"
+   if [[ "$*" != *"-l"* ]]; then
+      echo "rcloning to gdrive"
+      rclone  copy $datum.tar.gz fgdrive:/
+      cd ..
+   fi
 fi
+echo "finished, enjoy!"
 exit 0
 

@@ -10,4 +10,4 @@ __*
 *.csv
 *.save
 # eventually exclude a file with !debug.html
-
+test*
