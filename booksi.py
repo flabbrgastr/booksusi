@@ -1,10 +1,9 @@
 import gallib
-
-"""
+import pandas as pd
+import os
 
 # Specify the directory
 dir_path = './data'  # replace with your directory
-
 
 # leave only one, ie the newest, directory for each date
 dfiles = gallib.clean_files(dir_path, test_mode=False)
@@ -13,7 +12,6 @@ if dfiles:
 
 # get the last directory
 lastdir = gallib.getlastdir(dir_path)
-
 
 # get the names of categories in the last directory
 # summarize each category into a single file
@@ -26,12 +24,31 @@ if names:
 else:
     print('no files found in ' + lastdir)
 
-"""
-
 # extract gals out of each category file
 # and save them in a separate csv file
-testpath = './data/2023-06-06_202336'
-print('⌵ '+testpath[2:])
-gallib.findhtmls(testpath)
-#gallib.get_gals(testpath, 'analsex')
 
+print('⌵ '+lastdir[2:])
+
+print('⌵ getgals')
+html_files = gallib.findhtmls(lastdir)
+for file in html_files:
+    '''
+    occurrences = gallib.count_occurrences(testpath+'/'+file, pattern)
+    print('   ✓ '+file+' ... '+str(occurrences))
+    '''
+    arr = gallib.get_gals(lastdir, file)
+    df = pd.DataFrame(arr)
+
+    # Create the directory if it doesn't exist
+    if not os.path.exists(lastdir+'/gen/'):
+        os.makedirs(lastdir+'/gen/')
+
+    category = os.path.splitext(file)[0]
+    csv_file = lastdir+'/gen/'+category+'.csv'
+    df.to_csv(csv_file, index=False, mode='w')
+
+    # Write DataFrame to HTML table (overwrite if exists)
+    html_table = df.to_html(index=False)
+    html_file = lastdir+'/gen/'+category+'.html'
+    with open(html_file, 'w') as hfile:
+        hfile.write(html_table)

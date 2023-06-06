@@ -94,41 +94,6 @@ def cat_files(dir_path, name, remove=True):
 
     return concatenated_files
 
-def get_gals(dir_path, category, test=False):
-    dftmp = pd.DataFrame(columns=['Girl', 'Tel', 'Short',
-                               'Bezirk', 'Stadt', 'Strasse', 'Fans',
-                               'Gurl', 'Purl', 'a1', 'a0', 'cim', 'cof','t'])
-    f = category + '.html'
-    fh = check_file_exists(dir_path+'/'+f)
-    if fh: 
-        print('   ✓ '+f)
-    else: 
-        print('   x '+f)
-
-"""
-    with open(dir_path+'/'+f, 'r') as file:
-      #print(f,end='.', flush=True)
-      tmp = getGals(file.read(),  # file
-        True,            # service args
-        True,
-        True,
-        True)
-"""
-
-def getGals(content, a1=True, a0=True, cim=True, cof=True):
-    #pri
-    print('getGals')
-    # parses html into a soup data structure to traverse html
-    # as if it were a json data type.
-    # only input is content
-    tmp = []
-    page_soup = soup(content, "html.parser")
-
-    wrap_container = page_soup.find(
-        "div", {"class": "container", "id": "wrap"})
-    girls = page_soup.findAll(
-        "div", {"class": "girl-list-item", "data-type": "listing"})
-
 
 def check_file_exists(filename):
     try:
@@ -144,10 +109,95 @@ def check_file_exists(filename):
 
 def findhtmls(dir):
     htmls = []
-    for root, dirs, files in os.walk(dir):
-        for file in files:
-            if file.endswith(".html"):
-                # Check if the file name contains no numbers
-                if not any(char.isdigit() for char in file):
-                    htmls.append(file)
+    for file in os.listdir(dir):
+        if file.endswith(".html"):
+            # Check if the file name contains no numbers
+            if not any(char.isdigit() for char in file):
+                htmls.append(file)
     return htmls
+
+def count_occurrences(file, pattern):
+    with open(file, 'r') as html_file:
+        content = html_file.read()
+        occurrences = len(re.findall(pattern, content))
+        return occurrences
+
+
+def get_gals(dir_path, category, test=False):
+    dftmp = pd.DataFrame(columns=['Girl', 'Tel', 'Short',
+                               'Bezirk', 'Stadt', 'Strasse', 'Fans',
+                               'Gurl', 'Purl', 'a1', 'a0', 'cim', 'cof','t'])
+    f = category
+    fh = check_file_exists(dir_path+'/'+f)
+    if not fh: raise Exception('x', f)
+
+    # parses html into a soup data structure to traverse html
+    # as if it were a json data type.
+    # only input is content
+    a0,a1,cim,cof = '','','',''
+    if 'analsex' in category: a1='✓'
+    if 'natur' in category: a0='✓'
+    if 'cum_in_mouth' in category: cim='✓'
+    if 'cum_on_face' in category: cof='✓'
+
+    tmp = []
+    page_soup = soup(fh, "html.parser")
+
+    girls = page_soup.findAll("div", {"class": "girl-list-item", "data-type": "listing"})
+    print('   ✓ '+f+': '+str(len(girls)))
+
+    for girl in girls:
+        # append the Girl in every loop
+        girl_name = girl.select_one("div a:nth-of-type(1)").text.strip()  	# girl name
+
+        node = girl.div.div.select_one("div a:nth-of-type(1)")
+        if node is not None: stadt = node.text.strip()
+        else: stadt = 'Wien'
+
+        node = girl.div.div.select_one("div a:nth-of-type(2)")  	# bezirk
+        if node is not None: bezirk = node.text.strip()
+        else: bezirk = '1000'
+
+        try: strasse = girl.div.div.select_one("div a:nth-of-type(3)").text
+        except: strasse = ''
+
+        try: fancount = girl.select_one("span[id*=girl-fancount]").text
+        except: fancount = 0
+
+        try:
+            short_str = str(girl.select("div .girl-subtitle"))
+            short = short_str[short_str.index(
+                left)+len(left):short_str.index(right)].strip()
+        except:
+            short = ''
+
+        node = girl.find('a', {'class': 'pull-right'})
+        if node is not None: tel = node['href']
+        else: tel = '-'
+
+        gurl = girl.find('a', href=True)['href']
+
+        node = girl.find('source', srcset=True)
+        if node is not None: purl = node['srcset']
+        else: purl = None
+
+
+        tmp.append({'Girl': girl_name,
+                    'Stadt': stadt,
+                    'Bezirk': bezirk,
+                    'Strasse': strasse,
+                    'Fans': fancount,
+                    'Short': short,
+                    'Tel': tel,
+                    'Gurl': gurl,
+                    'Purl': purl,
+                    'a1': a1,
+                    'a0': a0,
+                    'cim': cim,
+                    'cof': cof,                
+                    't':''
+                    })
+#    print (tmp)
+    return tmp
+
+
