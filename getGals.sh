@@ -7,8 +7,8 @@ show_help() {
     echo "  -h        Display this help information"
     echo "  -i        Include images"
     echo "  -a        a only"
-    echo "  -l        local tar storage"
-    echo "  -f        local folder storage"
+    echo "  -l        local storage, default is rsync"
+    echo "  -f        folder, default is tar.gz"
     # Add more options and their descriptions as needed
 }
 
