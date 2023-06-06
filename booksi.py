@@ -31,24 +31,32 @@ print('⌵ '+lastdir[2:])
 
 print('⌵ getgals')
 html_files = gallib.findhtmls(lastdir)
+#dataframes = []
+pdall = pd.DataFrame()
+
 for file in html_files:
-    '''
-    occurrences = gallib.count_occurrences(testpath+'/'+file, pattern)
-    print('   ✓ '+file+' ... '+str(occurrences))
-    '''
+    category = os.path.splitext(file)[0]
+
     arr = gallib.get_gals(lastdir, file)
     df = pd.DataFrame(arr)
+    pdall = pd.concat([pdall, df], ignore_index=True)
 
-    # Create the directory if it doesn't exist
-    if not os.path.exists(lastdir+'/gen/'):
-        os.makedirs(lastdir+'/gen/')
+pdall = gallib.dfComprehend(pdall)
 
-    category = os.path.splitext(file)[0]
+# Create the directory if it doesn't exist
+if not os.path.exists(lastdir+'/gen/'):
+    os.makedirs(lastdir+'/gen/')
+
+# Write DataFrame to CSV file (overwrite if exists)
+csv_file = lastdir+'/gen/'+'all.csv'
+pdall.to_csv(csv_file, index=False, mode='w')
+
+'''    
     csv_file = lastdir+'/gen/'+category+'.csv'
     df.to_csv(csv_file, index=False, mode='w')
-
     # Write DataFrame to HTML table (overwrite if exists)
     html_table = df.to_html(index=False)
     html_file = lastdir+'/gen/'+category+'.html'
     with open(html_file, 'w') as hfile:
         hfile.write(html_table)
+'''

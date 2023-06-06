@@ -201,3 +201,11 @@ def get_gals(dir_path, category, test=False):
     return tmp
 
 
+def dfComprehend(dfnew):
+  #sort dfnew
+  print (len(dfnew.index),'Gals comprehended to ',end='', flush=True)
+  dfnew = dfnew.sort_values(by=['Girl'], ascending=True)
+  dfnew = dfnew[dfnew["Girl"].str.contains("Trans|trans|TRANS|^ts |^TS |^Ts |^Ts_")==False]  # remove trans
+  dfnew = dfnew.groupby(['Girl', 'Tel'], as_index=False).max()
+  print (len(dfnew.index))
+  return dfnew;
