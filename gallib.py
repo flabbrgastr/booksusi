@@ -244,14 +244,15 @@ def someStats(df):
     print(get_top_10_rows(rows_all_checkmarks,15))
     fancy_print("TOP10 Ass                                  ✓✓??",level=2)
     print(get_top_10_rows(rows_both_a1_a0))
-    fancy_print("TOP10 Cum                                  ✓✓✓✓",level=2)
+    fancy_print("TOP10 Cum                                  ??✓✓",level=2)
     print(get_top_10_rows(rows_both_cum))
     fancy_print("TOP10 A0Ass                                x✓??",level=2)
     print(get_top_10_rows(rows_a0_only))
     
-def get_top_10_rows(df, amount=10):
-    df = df.fillna('')  # Replace NaN values with empty string
-    top_10_rows = df[['Girl', 'Strasse','Fans','a1','a0','cim','cof']].sort_values('Fans', ascending=False).head(amount)
+def get_top_10_rows(top_10_rows, amount=10):
+    top_10_rows = top_10_rows.fillna('')  # Replace NaN values with empty string
+    top_10_rows['Fans'] = top_10_rows['Fans'].astype(int)
+    top_10_rows = top_10_rows[['Girl', 'Strasse','Fans','a1','a0','cim','cof']].sort_values('Fans', ascending=False).head(amount)
     top_10_rows = top_10_rows.reset_index(drop=True)  # Reset index and drop the original index column
     top_10_rows.index += 1  # Assign labels from 1 to 10
     top_10_rows.index.name = 'Rank'  # Add an index name

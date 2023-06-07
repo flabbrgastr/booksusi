@@ -5,7 +5,7 @@ import os
 # Specify the directory
 dir_path = './data'  # replace with your directory
 
-'''    
+
 # leave only one, ie the newest, zip file for each date
 dfiles = gallib.clean_files(dir_path, test_mode=False)
 if dfiles:
@@ -43,13 +43,8 @@ for file in html_files:
     pdall = pd.concat([pdall, df], ignore_index=True)
 
 pdall = gallib.dfComprehend(pdall)
-'''    
 
-
-pdall = pd.read_csv('./data/2023-06-07_074259/gen/all.csv')
 gallib.someStats(pdall)
-
-'''    
 
 # Create the directory if it doesn't exist
 if not os.path.exists(lastdir+'/gen/'):
@@ -58,7 +53,6 @@ if not os.path.exists(lastdir+'/gen/'):
 # Write DataFrame to CSV file (overwrite if exists)
 csv_file = lastdir+'/gen/'+'all.csv'
 pdall.to_csv(csv_file, index=False, mode='w')
-'''    
 
 
 '''    
