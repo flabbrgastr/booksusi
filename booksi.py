@@ -5,7 +5,7 @@ import os
 # Specify the directory
 dir_path = './data'  # replace with your directory
 
-# leave only one, ie the newest, directory for each date
+# leave only one, ie the newest, zip file for each date
 dfiles = gallib.clean_files(dir_path, test_mode=False)
 if dfiles:
     print(str(dfiles) + 'files cleaned')

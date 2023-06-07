@@ -165,11 +165,15 @@ def get_gals(dir_path, category, test=False):
         except: fancount = 0
 
         try:
-            short_str = str(girl.select("div .girl-subtitle"))
-            short = short_str[short_str.index(
-                left)+len(left):short_str.index(right)].strip()
+            short_str = girl.find('div', class_='girl-subtitle')
+#            short = short_str[short_str.index(
+#                left)+len(left):short_str.index(right)].strip()
+#            print(short_str)
+            short = short_str.get_text(strip=True, separator=' ')
+#            print(short)
         except:
             short = ''
+#        exit()
 
         node = girl.find('a', {'class': 'pull-right'})
         if node is not None: tel = node['href']
@@ -203,9 +207,12 @@ def get_gals(dir_path, category, test=False):
 
 def dfComprehend(dfnew):
   #sort dfnew
-  print (len(dfnew.index),'Gals comprehended to ',end='', flush=True)
+  oldnum=len(dfnew.index)
+  print ('    ',+oldnum,'comprehended to ',end='', flush=True)
   dfnew = dfnew.sort_values(by=['Girl'], ascending=True)
   dfnew = dfnew[dfnew["Girl"].str.contains("Trans|trans|TRANS|^ts |^TS |^Ts |^Ts_")==False]  # remove trans
+  dfnew = dfnew[dfnew["Short"].str.contains("Trans|trans|TRANS|^ts |^TS |^Ts |^Ts_")==False]  # remove trans
   dfnew = dfnew.groupby(['Girl', 'Tel'], as_index=False).max()
-  print (len(dfnew.index))
+  newnum=len(dfnew.index)
+  print (str(newnum)+'(-'+str(oldnum-len(dfnew.index))+')')
   return dfnew;
