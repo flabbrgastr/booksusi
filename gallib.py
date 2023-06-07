@@ -216,3 +216,43 @@ def dfComprehend(dfnew):
   newnum=len(dfnew.index)
   print (str(newnum)+'(-'+str(oldnum-len(dfnew.index))+')')
   return dfnew;
+
+
+def fancy_print(message, level=1):
+    if level == 1:
+        header = f"=== {message} ==="
+        line = "=" * len(header)
+    elif level == 2:
+        header = f"--- {message} ---"
+        line = "-" * len(header)
+    else:
+        header = f"{message}"
+
+    if level in [1, 2]: print(line)
+    print(header)
+    if level in [1, 2]: print(line)
+
+def someStats(df):
+    # Number of rows that have all four columns checkmarked
+    rows_all_checkmarks = df[(df['a1'] == '✓') & (df['a0'] == '✓') & (df['cof'] == '✓') & (df['cim'] == '✓')]
+    rows_both_a1_a0 = df[(df['a1'] == '✓') & (df['a0'] == '✓')]
+    rows_both_cum = df[(df['cof'] == '✓') & (df['cim'] == '✓')]
+    rows_a0_only = df[(df['a1'] != '✓') & (df['a0'] == '✓')]
+
+    # Print the statistics
+    fancy_print("TOP10 Supergals                            ✓✓✓✓",level=2)
+    print(get_top_10_rows(rows_all_checkmarks,15))
+    fancy_print("TOP10 Ass                                  ✓✓??",level=2)
+    print(get_top_10_rows(rows_both_a1_a0))
+    fancy_print("TOP10 Cum                                  ✓✓✓✓",level=2)
+    print(get_top_10_rows(rows_both_cum))
+    fancy_print("TOP10 A0Ass                                x✓??",level=2)
+    print(get_top_10_rows(rows_a0_only))
+    
+def get_top_10_rows(df, amount=10):
+    df = df.fillna('')  # Replace NaN values with empty string
+    top_10_rows = df[['Girl', 'Strasse','Fans','a1','a0','cim','cof']].sort_values('Fans', ascending=False).head(amount)
+    top_10_rows = top_10_rows.reset_index(drop=True)  # Reset index and drop the original index column
+    top_10_rows.index += 1  # Assign labels from 1 to 10
+    top_10_rows.index.name = 'Rank'  # Add an index name
+    return top_10_rows
