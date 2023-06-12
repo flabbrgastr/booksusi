@@ -1,6 +1,17 @@
 import gallib as gl
 import pandas as pd
 import os
+import sys
+
+
+if "-h" in sys.argv:
+    print('''
+    Usage:
+        python booksi.py [options]
+        -h  help
+        -ci csv import instead of html analysis. Faster for testing.
+        -s show stats''')
+    sys.exit()
 
 # Specify the directory
 dir_path = './data'  # replace with your directory
@@ -25,35 +36,38 @@ if names:
 else:
     print('no files found in ' + lastdir)
 
-# extract gals out of each category file
-# and save them in a separate csv file
-print('⌵ getgals '+lastdir[2:])
-html_files = gl.findhtmls(lastdir)
-#dataframes = []
-pdall = pd.DataFrame()
+if "-ci" not in sys.argv:
+    # extract gals out of each category file
+    # and save them in a separate csv file
+    print('⌵ getgals '+lastdir[2:])
+    html_files = gl.findhtmls(lastdir)
+    #dataframes = []
+    pdall = pd.DataFrame()
 
-for file in html_files:
-    category = os.path.splitext(file)[0]
+    for file in html_files:
+        category = os.path.splitext(file)[0]
 
-    arr = gl.get_gals(lastdir, file)
-    df = pd.DataFrame(arr)
- #   print(df.head(3))
-    pdall = pd.concat([pdall, df], ignore_index=True)
+        arr = gl.get_gals(lastdir, file)
+        df = pd.DataFrame(arr)
+    #   print(df.head(3))
+        pdall = pd.concat([pdall, df], ignore_index=True)
 
-pdall = gl.dfComprehend(pdall)
-gl.someStats(pdall)
+    pdall = gl.dfComprehend(pdall)
+    
+    if "-s" in sys.argv:
+        gl.someStats(pdall)
 
-
-# Create the directory if it doesn't exist
-if not os.path.exists(lastdir+'/gen/'):
-    os.makedirs(lastdir+'/gen/')
-
-# Write DataFrame to CSV file (overwrite if exists)
-csv_file = lastdir+'/gen/'+'all.csv'
-pdall.to_csv(csv_file, index=False, mode='w')
+    # Create the directory if it doesn't exist
+    if not os.path.exists(lastdir+'/gen/'):
+        os.makedirs(lastdir+'/gen/')
+    # Write DataFrame to CSV file (overwrite if exists)
+    csv_file = lastdir+'/gen/'+'all.csv'
+    pdall.to_csv(csv_file, index=False, mode='w')
+else:
+    # ingest existing csv file
+    pdall = pd.read_csv(lastdir+'/gen/all.csv')
 
 print('⌵ write csv and html')
-# pdall = pd.read_csv(lastdir+'/gen/all.csv')
 html_table = gl.convert_dataframe_to_html(pdall)
 #html_table = gallib.df_to_html2(pdall)
 html_file = lastdir+'/gen/'+'all.html'

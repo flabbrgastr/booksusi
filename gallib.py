@@ -6,7 +6,8 @@ from collections import defaultdict
 import pandas as pd
 from bs4 import BeautifulSoup as soup  # HTML data structure
 import shutil
-
+from tqdm import tqdm
+import time
 
 def clean_files(dir_path, test_mode=False):
     # Get list of files in the directory
@@ -189,11 +190,16 @@ def get_gals(dir_path, category, test=False):
     girls = page_soup.findAll("div",
                               {"class": "girl-list-item",
                                "data-type": "listing"})
-    print('   ✓ '+f+': '+str(len(girls)))
+    noofgals = len(girls)
+    descstr = '   ✓ '+f+': '+str(noofgals)
+    #print('   ✓ '+f+': '+str(noofgals))
+    # Create a progress bar using tqdm
+    progress_bar = tqdm(total=noofgals, desc=descstr, 
+                        bar_format="{l_bar}", ncols=80)
 
     for girl in girls:
+        progress_bar.update(1)
         girl_name = girl.find('h4').get_text(strip=True)
-
 
         location = girl.find("div", class_="g-location") # find the div element with class 'g-location'
         hrefs = location.find_all("a")
@@ -239,7 +245,6 @@ def get_gals(dir_path, category, test=False):
         else:
             purl = None
 
-
         tmp.append({'Girl': girl_name,
                     'Stadt': stadt,
                     'Bezirk': bezirk,
@@ -255,6 +260,7 @@ def get_gals(dir_path, category, test=False):
                     'cof': cof,                
                     't':''
                     })
+    progress_bar.close()
     return tmp
 
 
@@ -263,11 +269,12 @@ def dfComprehend(dfnew):
   oldnum=len(dfnew.index)
   print ('    ',+oldnum,'comprehended to ',end='', flush=True)
   dfnew = dfnew.sort_values(by=['Girl'], ascending=True)
-  dfnew = dfnew[dfnew["Girl"].str.contains("Trans|trans|TRANS|^ts |^TS |^Ts |^Ts_")==False]  # remove trans
-  dfnew = dfnew[dfnew["Short"].str.contains("Trans|trans|TRANS|^ts |^TS |^Ts |^Ts_")==False]  # remove trans
+  dfnew = dfnew[dfnew["Girl"].str.contains("Trans|trans|TRANS|^ts |TS |^Ts |^Ts_")==False]  # remove trans
+  dfnew = dfnew[dfnew["Short"].str.contains("Trans|trans|TRANS|^ts |TS |^Ts |^Ts_")==False]  # remove trans
   dfnew = dfnew.groupby(['Girl', 'Tel'], as_index=False).max()
   newnum=len(dfnew.index)
-  print (str(newnum)+'(-'+str(oldnum-len(dfnew.index))+')')
+  percentage = (oldnum - len(dfnew.index)) / oldnum * 100
+  print(f"{newnum} -{percentage:.0f}%")
   return dfnew;
 
 
