@@ -29,10 +29,10 @@ lastdir = gl.getlastdir(dir_path)
 # summarize each category into a single file
 names = gl.ex_names(lastdir)
 if names:
-    print('entering '+lastdir)
+    print('html preprocessing '+lastdir)
     for name in names:
-        catted = gl.cat_files(lastdir, name)
-        print('    '+name + ' ... ' + str(catted))
+        catted = gl.cat_files(lastdir, name, remove=True)
+#        print('    '+name + ' ... ' + str(catted))
 else:
     print('no files found in ' + lastdir)
 
@@ -66,6 +66,8 @@ if "-ci" not in sys.argv:
 else:
     # ingest existing csv file
     pdall = pd.read_csv(lastdir+'/gen/all.csv')
+    if "-s" in sys.argv:
+        gl.someStats(pdall)
 
 print('⌵ write csv and html')
 html_table = gl.convert_dataframe_to_html(pdall)

@@ -88,30 +88,14 @@ def ex_names(dir_path):
     return filenames
 
 
-def cat_files2(dir_path, name, remove=True):
-    concatenated_files = 0  # Counter for concatenated files
-    concatenated_content = ""
-    for filename in os.listdir(dir_path):
-        if filename.startswith(name):
-            file_path = os.path.join(dir_path, filename)
-            with open(file_path, 'r') as file:
-                content = file.read()
-                concatenated_content += content
-                if remove:
-                    os.remove(file_path)
-            concatenated_files += 1
-    output_file_path = dir_path + '/' + f"{name}.html"
-    with open(output_file_path, 'w') as output_file:
-        output_file.write(concatenated_content)
-        output_file.close()
-
-    return concatenated_files
-
-
 def cat_files(dir_path, name, remove=True):
     concatenated_files = 0  # Counter for concatenated files
     concatenated_content = ""
-    for filename in os.listdir(dir_path):
+    files = os.listdir(dir_path)
+    num_items = len([f for f in files if f.startswith(name)])
+    progress_bar = tqdm(total=num_items, desc='   ✓ '+name,
+                        bar_format="{l_bar}", ncols=80)
+    for filename in files:
         if filename.startswith(name):
             file_path = os.path.join(dir_path, filename)
             with open(file_path, 'r') as file:
@@ -120,6 +104,7 @@ def cat_files(dir_path, name, remove=True):
                 girls = sgirls.find_all("div",
                               {"class": "girl-list-item",
                                "data-type": "listing"})
+                progress_bar.update(1)
                 for girl in girls:
                     concatenated_content += str(girl)
                 if remove:
@@ -129,7 +114,7 @@ def cat_files(dir_path, name, remove=True):
     with open(output_file_path, 'w') as output_file:
         output_file.write(concatenated_content)
         output_file.close()
-
+    progress_bar.close()
     return concatenated_files
 
 def check_file_exists(filename):
@@ -315,7 +300,7 @@ def someStats(df):
 def get_top_10_rows(top_10_rows, amount=10, Top=True):
     top_10_rows = top_10_rows.fillna('')  # Replace NaN values with empty string
     top_10_rows['Fans'] = top_10_rows['Fans'].astype(int)
-    top_10_rows = top_10_rows[['Girl', 'Strasse','Gurl','Fans','a1','a0','cim','cof']].sort_values('Fans', ascending = not Top).head(amount)
+    top_10_rows = top_10_rows[['Girl', 'Strasse','Fans','a1','a0','cim','cof']].sort_values('Fans', ascending = not Top).head(amount)
     top_10_rows = top_10_rows.reset_index(drop=True)  # Reset index and drop the original index column
     top_10_rows.index += 1  # Assign labels from 1 to 10
     top_10_rows.index.name = 'Rank'  # Add an index name
