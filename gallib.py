@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup as soup  # HTML data structure
 import shutil
 from tqdm import tqdm
 import time
+import datetime
 
 def clean_files(dir_path, test_mode=False):
     # Get list of files in the directory
@@ -308,20 +309,35 @@ def get_top_10_rows(top_10_rows, amount=10, Top=True):
 
 
 def convert_dataframe_to_html(df):
+    # Get the current date, time, and day
+    current_datetime = datetime.datetime.now()
+    formatted_datetime = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
+    day_of_week = current_datetime.strftime("%A")
+
     # Sort the DataFrame by index
     df = df.sort_index()
+
+    # Convert Girl column to bold, underline, and italic based on conditions
+#    df['Girl'] = df.apply(lambda row: f'<b>{row["Girl"]}</b>' if isinstance(row['a1'], str) and row['a1'].strip() != "" else row['Girl'], axis=1)
+#    df['Girl'] = df.apply(lambda row: f'<u>{row["Girl"]}</u>' if isinstance(row['a0'], str) else row['Girl'], axis=1)
+#    df['Girl'] = df.apply(lambda row: f'<i>{row["Girl"]}</i>' if isinstance(row['cof'], str) else row['Girl'], axis=1)
 
     # Add Img column with image tags
     df.insert(0, 'Img', df['Purl'].apply(lambda x: f'<img src="{x}" style="max-width: 140px; max-height: 140px;">'))
 
-    # Convert Purl column to clickable image URLs
-    df['Purl'] = df['Purl'].apply(lambda x: f'<a href="{x}">img</a>')
-
-    # Convert Gurl column to clickable URLs
-    df['Gurl'] = df['Gurl'].apply(lambda x: f'<a href="{x}">url</a>')
+    df['Purl'] = df['Purl'].apply(lambda x: f'<a href="{x}" target="_blank">img</a>')
+    df['Gurl'] = df['Gurl'].apply(lambda x: f'<a href="{x}" target="_blank">url</a>')
 
     # Replace NaN values with empty string
     df = df.fillna("")
+
+    # Add peach emoji to Girl column if A0 or A1 has a string
+    # Add waterdrop emojis to Girl column if Cim or Cof has a string
+#    df.loc[(df['a0'].apply(lambda x: isinstance(x, str))) | (df['a1'].apply(lambda x: isinstance(x, str) and x.strip() != "")), 'Girl'] += ' &#x1F351;'
+    df.loc[(df['a0'].apply(lambda x: isinstance(x, str) and x.strip() != "")) | (df['a1'].apply(lambda x: isinstance(x, str) and x.strip() != "")), 'Girl'] += ' &#x1F351;'
+    df.loc[(df['cim'].apply(lambda x: isinstance(x, str) and x.strip() != "")) | (df['cof'].apply(lambda x: isinstance(x, str) and x.strip() != "")), 'Girl'] += ' &#x1f4a6;'
+    df['Girl'] = df.apply(lambda row: f'<u>{row["Girl"]}</u>' if isinstance(row['Strasse'], str) and row['Strasse'].strip() != "" else row['Girl'], axis=1)
+#    df.loc[(df['Strasse'].apply(lambda x: isinstance(x, str) and x.strip() != "")), 'Girl'] += ' &#x1F3E0;'
 
     # Convert DataFrame to HTML table
     table_html = df.to_html(escape=False, index=False, classes='sortable')
@@ -337,37 +353,43 @@ def convert_dataframe_to_html(df):
                 width: 100%;
                 border: none;
             }}
-            
+
             th, td {{
                 text-align: left;
                 padding: 8px;
                 border: none;
             }}
-            
+
             th.sortable {{
                 background-color: #007bff;
                 color: white;
                 cursor: pointer;
             }}
-            
+
             tr:nth-child(even) {{
                 background-color: #f2f2f2;
             }}
-            
+
             tr:hover {{
                 background-color: #e6e6ff;
             }}
-            
+
             img {{
                 max-width: 140px;
                 max-height: 140px;
                 border: none;
             }}
+
+            thead th {{
+                position: sticky;
+                top: 0;
+                background-color: #f1f1f1;
+            }}
         </style>
     </head>
     <body>
+        <p>Date: {formatted_datetime}, Time: {day_of_week}, Day: {day_of_week}</p>
         {table_html}
-        <link href="https://cdn.jsdelivr.net/gh/tofsjonas/sortable@latest/sortable.min.css" rel="stylesheet" />
         <script src="https://cdn.jsdelivr.net/gh/tofsjonas/sortable@latest/sortable.min.js"></script>
 
     </body>

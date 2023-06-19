@@ -2,6 +2,7 @@ import gallib as gl
 import pandas as pd
 import os
 import sys
+import shutil
 
 
 if "-h" in sys.argv:
@@ -75,3 +76,4 @@ html_table = gl.convert_dataframe_to_html(pdall)
 html_file = lastdir+'/gen/'+'all.html'
 with open(html_file, 'w') as hfile:
     hfile.write(html_table)
+shutil.copy2(lastdir+'/gen/'+'all.html', './all.html', follow_symlinks=True)
