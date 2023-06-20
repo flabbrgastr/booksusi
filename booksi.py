@@ -18,10 +18,9 @@ if "-h" in sys.argv:
 dir_path = './data'  # replace with your directory
 
 # leave only one, ie the newest, zip file for each date
-dfiles = gl.clean_files(dir_path, test_mode=False)
-ddirs = gl.clean_dirs(dir_path, test_mode=False)
-if dfiles or ddirs:
-    print(str(dfiles) +' / '+str(dfiles) + '   dirs / files cleaned')
+pruned_items = gl.prune_items(dir_path, test_mode=False)
+if pruned_items:
+    print(str(pruned_items) + '   items pruned')
 
 # get the last directory
 lastdir = gl.getlastdir(dir_path)

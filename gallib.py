@@ -55,6 +55,94 @@ def clean_dirs(dir_path, test_mode=False):
 
     return len(directories[:-1])  # Return the number of deleted directories
 
+def prune_items(path, test_mode=True):
+    # Group files and folders by week
+    files_by_week = defaultdict(lambda: defaultdict(list))
+    folders_by_week = defaultdict(lambda: defaultdict(list))
+    
+    # Get current time
+    now = datetime.datetime.now()
+    
+    # Counter for pruned items
+    pruned_items = 0
+    
+    # Iterate over each item in the directory
+    for item in os.listdir(path):
+        # Full path of item
+        item_path = os.path.join(path, item)
+        
+        # Get the date from the item name
+        try:
+            # Expected format YYYY-MM-DD_TTTTTT
+            item_date = datetime.datetime.strptime(item[:10], '%Y-%m-%d')
+        except ValueError:
+            # Skip item if it doesn't match the expected format
+            print(f"Skipping {item}, does not match expected format")
+            continue
+        
+        # Get the number of weeks since the item's creation
+        weeks_since_creation = (now - item_date).days // 7
+        
+        # Group items by weeks and type
+        if os.path.isfile(item_path):
+            files_by_week[weeks_since_creation][item_date].append(item_path)
+        elif os.path.isdir(item_path):
+            folders_by_week[weeks_since_creation][item_date].append(item_path)
+    
+    # Keep only the most recent item and one per week for files
+    for week, files_by_date in files_by_week.items():
+        for date, files in files_by_date.items():
+            # Sort by creation time
+            files.sort(key=lambda x: os.path.getctime(x), reverse=True)
+            # If it's the current week, keep one item per day
+            if week == 0:
+                # Remove all but the most recent file for each day
+                for file in files[1:]:
+                    if test_mode:
+                        print(f"Test mode: Would delete file {file}")
+                    else:
+                        os.remove(file)
+                        pruned_items += 1
+                        #print(f"Deleted file: {file}")
+            else:
+                # Remove all but the most recent file for each week
+                for file in files[1:]:
+                    if test_mode:
+                        print(f"Test mode: Would delete file {file}")
+                    else:
+                        os.remove(file)
+                        pruned_items += 1
+                        #print(f"Deleted file: {file}")
+
+    # Keep only the most recent item and one per week for folders
+    for week, folders_by_date in folders_by_week.items():
+        for date, folders in folders_by_date.items():
+            # Sort by creation time
+            folders.sort(key=lambda x: os.path.getctime(x), reverse=True)
+            # If it's the current week, keep one item per day
+            if week == 0:
+                # Remove all but the most recent folder for each day
+                for folder in folders[1:]:
+                    if test_mode:
+                        print(f"Test mode: Would delete folder {folder}")
+                    else:
+                        shutil.rmtree(folder)
+                        pruned_items += 1
+                        #print(f"Deleted folder: {folder}")
+            else:
+                # Remove all but the most recent folder for each week
+                for folder in folders[1:]:
+                    if test_mode:
+                        print(f"Test mode: Would delete folder {folder}")
+                    else:
+                        shutil.rmtree(folder)
+                        pruned_items += 1
+                        #print(f"Deleted folder: {folder}")
+
+    # Return the number of pruned items
+    return pruned_items
+
+
 def getlastdir(dir_path):
     # Get the directories in dir_path
     directories = [directory for directory in os.listdir(dir_path)
