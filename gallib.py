@@ -9,51 +9,8 @@ import shutil
 from tqdm import tqdm
 import time
 import datetime
+import wcwidth
 
-def clean_files(dir_path, test_mode=False):
-    # Get list of files in the directory
-    files = glob.glob(os.path.join(dir_path, '*.tar.gz'))
-    dfiles = 0
-    # Group files by date
-    files_by_date = defaultdict(list)
-    for file in files:
-        date, time = os.path.basename(file).split('_')
-        time = time.split('.')[0]  # remove .tar.gz
-        files_by_date[date].append((time, file))
-
-    # For each date, keep only the file with the latest time
-    for date, files in files_by_date.items():
-        # Sort files by time
-        files.sort(reverse=True)
-        # Keep only the file with the latest time
-        for time, file in files[1:]:
-            if test_mode:
-                print(f'Would delete: {file}')
-            else:
-                dfiles += 1   	    # count deleted files
-                os.remove(file)     # delete file
-
-        if test_mode:
-            print(f'Would keep: {files[0][1]}')
-    return dfiles
-
-
-def clean_dirs(dir_path, test_mode=False):
-    # Get list of directories in the path
-    directories = [os.path.join(dir_path, d) for d in os.listdir(dir_path) if os.path.isdir(os.path.join(dir_path, d))]
-
-    # Sort directories by date (ascending order)
-    directories.sort()
-
-    # Keep the last directory and delete the rest
-    for directory in directories[:-1]:
-        if test_mode:
-            print(f'Would delete directory: {directory}')
-        else:
-            # Remove directory and all its contents recursively
-            shutil.rmtree(directory)
-
-    return len(directories[:-1])  # Return the number of deleted directories
 
 def prune_items(path, test_mode=True):
     # Group files and folders by week
@@ -206,6 +163,7 @@ def cat_files(dir_path, name, remove=True):
     progress_bar.close()
     return concatenated_files
 
+
 def check_file_exists(filename):
     try:
         # Try to open the file
@@ -290,6 +248,12 @@ def get_gals(dir_path, category, test=False):
             fancount = 0
 
         try:
+            score_element = girl.find('div', class_='girl-score')
+            score = score_element.text
+        except:
+            score = ''
+
+        try:
             short_str = girl.find('div', class_='girl-subtitle')
 #            short = short_str[short_str.index(
 #                              left)+len(left):short_str.index(right)].strip()
@@ -318,12 +282,24 @@ def get_gals(dir_path, category, test=False):
             purl = node['srcset']
         else:
             purl = None
+        
+        # Find the div element with the specified class
+        #div = soup.find('div', class_='girl-list-item')
+        try:
+            # Extract the data-id and owner-id attributes
+            sid = girl['data-id']
+            gid = girl['class'][2].split('-')[1]
+        except:
+            sid = None
+            gid = None
+
 
         tmp.append({'Girl': girl_name,
                     'Stadt': stadt,
                     'Bezirk': bezirk,
                     'Strasse': strasse,
                     'Fans': fancount,
+                    'Score': score,
                     'Short': short,
                     'Tel': tel,
                     'Gurl': gurl,
@@ -331,7 +307,9 @@ def get_gals(dir_path, category, test=False):
                     'a1': a1,
                     'a0': a0,
                     'cim': cim,
-                    'cof': cof,                
+                    'cof': cof,
+                    'sid': sid,
+                    'gid': gid,
                     't':''
                     })
     progress_bar.close()
@@ -355,10 +333,10 @@ def dfComprehend(dfnew):
 def fancy_print(message, level=1):
     if level == 1:
         header = f"=== {message} ==="
-        line = "=" * len(header)
+        line = "=" * sum(wcwidth.wcwidth(c) for c in header)
     elif level == 2:
         header = f"--- {message} ---"
-        line = "-" * len(header)
+        line = "-" * sum(wcwidth.wcwidth(c) for c in header)
     else:
         header = f"{message}"
 
@@ -375,24 +353,36 @@ def someStats(df):
     rows_a0_only = df[(df['a1'] != '✓') & (df['a0'] == '✓')]
 
     # Print the statistics
-    fancy_print("TOP10 Supergals                            ✓✓✓✓",level=2)
-    print(get_top_10_rows(rows_all_checkmarks,5))
-    fancy_print("TOP10 Ass                                  ✓✓??",level=2)
-    print(get_top_10_rows(rows_both_a1_a0,5))
-    fancy_print("New Ass                                  ✓✓??",level=2)
-    print(get_top_10_rows(rows_both_a1_a0,5, Top=False))
-    fancy_print("TOP10 Cum                                  ??✓✓",level=2)
-    print(get_top_10_rows(rows_both_cum,5))
-    fancy_print("TOP10 A0Ass                                x✓??",level=2)
-    print(get_top_10_rows(rows_a0_only,5))
-    
-def get_top_10_rows(top_10_rows, amount=10, Top=True):
+    get_top_10_rows(rows_all_checkmarks,5,title="TOP Supergals              🍑🍑💦💦")
+    get_top_10_rows(rows_both_a1_a0,5,title="TOP Ass                🍑🍑")
+    get_top_10_rows(rows_both_cum,5,title="TOP Cum              💦💦")
+    get_top_10_rows(rows_a0_only,5,title="TOP Ass0              0🍑")
+
+    print('Tels:')
+    dups(df,'Tel')
+
+
+def dups(df, columnid=''):
+    dups = 0
+    total = len(df)
+    counts = df[columnid].value_counts()
+    duplicates = counts[counts > 1]
+    duplicate_list = list(zip(duplicates.index, duplicates.values))
+    for columnid, occurrences in duplicate_list:
+        dups+=occurrences
+    print(f"    Total: {total}, Uniques: {total-dups}")
+
+
+def get_top_10_rows(top_10_rows, amount=10, Top=True, title="", print_top_10_rows=True):
     top_10_rows = top_10_rows.fillna('')  # Replace NaN values with empty string
     top_10_rows['Fans'] = top_10_rows['Fans'].astype(int)
     top_10_rows = top_10_rows[['Girl', 'Strasse','Fans','a1','a0','cim','cof']].sort_values('Fans', ascending = not Top).head(amount)
     top_10_rows = top_10_rows.reset_index(drop=True)  # Reset index and drop the original index column
     top_10_rows.index += 1  # Assign labels from 1 to 10
     top_10_rows.index.name = 'Rank'  # Add an index name
+    if print_top_10_rows:
+        fancy_print(title, level=2)
+        print(top_10_rows)
     return top_10_rows
 
 
@@ -405,27 +395,39 @@ def convert_dataframe_to_html(df):
     # Sort the DataFrame by index
     df = df.sort_index()
 
-    # Convert Girl column to bold, underline, and italic based on conditions
-#    df['Girl'] = df.apply(lambda row: f'<b>{row["Girl"]}</b>' if isinstance(row['a1'], str) and row['a1'].strip() != "" else row['Girl'], axis=1)
-#    df['Girl'] = df.apply(lambda row: f'<u>{row["Girl"]}</u>' if isinstance(row['a0'], str) else row['Girl'], axis=1)
-#    df['Girl'] = df.apply(lambda row: f'<i>{row["Girl"]}</i>' if isinstance(row['cof'], str) else row['Girl'], axis=1)
-
     # Add Img column with image tags
     df.insert(0, 'Img', df['Purl'].apply(lambda x: f'<img src="{x}" style="max-width: 140px; max-height: 140px;">'))
 
-    df['Purl'] = df['Purl'].apply(lambda x: f'<a href="{x}" target="_blank">img</a>')
-    df['Gurl'] = df['Gurl'].apply(lambda x: f'<a href="{x}" target="_blank">url</a>')
+    # Add a clickable URL to 'Girl' column with link from 'Gurl' and name from 'Girl', opening in a new tab
+    df['Girl'] = df.apply(lambda row: f'<a href="{row["Gurl"]}" target="_blank" class="no-underline">{row["Girl"]}</a>', axis=1)
 
     # Replace NaN values with empty string
     df = df.fillna("")
 
-    # Add peach emoji to Girl column if A0 or A1 has a string
-    # Add waterdrop emojis to Girl column if Cim or Cof has a string
-#    df.loc[(df['a0'].apply(lambda x: isinstance(x, str))) | (df['a1'].apply(lambda x: isinstance(x, str) and x.strip() != "")), 'Girl'] += ' &#x1F351;'
-    df.loc[(df['a0'].apply(lambda x: isinstance(x, str) and x.strip() != "")) | (df['a1'].apply(lambda x: isinstance(x, str) and x.strip() != "")), 'Girl'] += ' &#x1F351;'
-    df.loc[(df['cim'].apply(lambda x: isinstance(x, str) and x.strip() != "")) | (df['cof'].apply(lambda x: isinstance(x, str) and x.strip() != "")), 'Girl'] += ' &#x1f4a6;'
-    df['Girl'] = df.apply(lambda row: f'<u>{row["Girl"]}</u>' if isinstance(row['Strasse'], str) and row['Strasse'].strip() != "" else row['Girl'], axis=1)
+    # emoji and string operations on cells
+#    df['Girl'] = df['Girl'].apply(lambda x: f'{x}<br>')
+#    df['Girl'] = df.apply(lambda row: f'<u>{row["Girl"]}</u>' if isinstance(row['Strasse'], str) and row['Strasse'].strip() != "" else row['Girl'], axis=1)
+#    df.loc[(df['a0'].apply(lambda x: isinstance(x, str) and x.strip() != "")) | (df['a1'].apply(lambda x: isinstance(x, str) and x.strip() != "")), 'Girl'] += ' &#x1F351;'
+#    df.loc[(df['cim'].apply(lambda x: isinstance(x, str) and x.strip() != "")) | (df['cof'].apply(lambda x: isinstance(x, str) and x.strip() != "")), 'Girl'] += ' &#x1f4a6;'
 #    df.loc[(df['Strasse'].apply(lambda x: isinstance(x, str) and x.strip() != "")), 'Girl'] += ' &#x1F3E0;'
+    # Replace any non-empty string in 'a1' column with the peach emoji
+    df['Loc'] = df['Strasse'].apply(lambda x: '🏠' if isinstance(x, str) and x.strip() != "" else '')
+    df.loc[df['a1'].apply(lambda x: isinstance(x, str) and x.strip() != ""), 'a1'] = '🍑'
+    df.loc[df['a0'].apply(lambda x: isinstance(x, str) and x.strip() != ""), 'a0'] = '🍑'
+    df.loc[df['cof'].apply(lambda x: isinstance(x, str) and x.strip() != ""), 'cof'] = '&#x1f4a6;'
+    df.loc[df['cim'].apply(lambda x: isinstance(x, str) and x.strip() != ""), 'cim'] = '&#x1f4a6;'
+    
+    # combine columns Stadt, Bezirk and Strasse into one column 'Location'
+    df['Bezirk'] = df['Bezirk'].apply(lambda x: f'{x}<br>')
+    df['Strasse'] = df['Strasse'].apply(lambda x: f'{x}<br>')
+    df['Location'] = df['Bezirk'] + df['Strasse']
+
+    # Remove Stadt, Bezirk and Strasse columns
+    df = df.drop(columns=['Stadt', 'Bezirk', 'Strasse'])
+    
+    # Specify the desired order of columns
+    new_column_order = ['Img', 'Girl', 'Loc', 'Score', 'Fans', 'a1', 'a0', 'cof', 'cim', 'Short', 'Location', 'Tel', 'sid', 'gid']
+    df = df[new_column_order]
 
     # Convert DataFrame to HTML table
     table_html = df.to_html(escape=False, index=False, classes='sortable')
@@ -473,6 +475,10 @@ def convert_dataframe_to_html(df):
                 top: 0;
                 background-color: #f1f1f1;
             }}
+            .no-underline {{
+                text-decoration: none;
+            }}
+
         </style>
     </head>
     <body>
