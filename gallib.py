@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup as soup  # HTML data structure
 import shutil
 from tqdm import tqdm
 import time
-import datetime
+from datetime import datetime, timedelta
 import wcwidth
 
 
@@ -18,7 +18,7 @@ def prune_items(path, test_mode=True):
     folders_by_week = defaultdict(lambda: defaultdict(list))
     
     # Get current time
-    now = datetime.datetime.now()
+    now = datetime.now()
     
     # Counter for pruned items
     pruned_items = 0
@@ -31,7 +31,7 @@ def prune_items(path, test_mode=True):
         # Get the date from the item name
         try:
             # Expected format YYYY-MM-DD_TTTTTT
-            item_date = datetime.datetime.strptime(item[:10], '%Y-%m-%d')
+            item_date = datetime.strptime(item[:10], '%Y-%m-%d')
         except ValueError:
             # Skip item if it doesn't match the expected format
             print(f"Skipping {item}, does not match expected format")
@@ -293,7 +293,6 @@ def get_gals(dir_path, category, test=False):
             sid = None
             gid = None
 
-
         tmp.append({'Girl': girl_name,
                     'Stadt': stadt,
                     'Bezirk': bezirk,
@@ -388,7 +387,7 @@ def get_top_10_rows(top_10_rows, amount=10, Top=True, title="", print_top_10_row
 
 def convert_dataframe_to_html(df):
     # Get the current date, time, and day
-    current_datetime = datetime.datetime.now()
+    current_datetime = datetime.now()
     formatted_datetime = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
     day_of_week = current_datetime.strftime("%A")
 
@@ -426,7 +425,7 @@ def convert_dataframe_to_html(df):
     df = df.drop(columns=['Stadt', 'Bezirk', 'Strasse'])
     
     # Specify the desired order of columns
-    new_column_order = ['Img', 'Girl', 'Loc', 'Score', 'Fans', 'a1', 'a0', 'cof', 'cim', 'Short', 'Location', 'Tel', 'sid', 'gid']
+    new_column_order = ['Img', 'Girl', 'Loc', 'Score', 'Fans', 'a1', 'a0', 'cof', 'cim', 'Short', 'Location', 'Tel', 't']
     df = df[new_column_order]
 
     # Convert DataFrame to HTML table
@@ -491,3 +490,69 @@ def convert_dataframe_to_html(df):
     '''
 
     return html
+
+
+def matchdir(path, delta):
+    # Get the current date
+    current_date = datetime.now().date()
+
+    # Initialize a list to store directory-delta pairs
+    dir_delta_pairs = []
+
+    # Get the directories in path
+    directories = [directory for directory in os.listdir(path)
+                   if os.path.isdir(os.path.join(path, directory))]
+
+    # Iterate over the directories
+    for directory in directories:
+        # Calculate the delta based on the directory name
+        date_str = directory.split("_")[0]
+        directory_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        dir_delta = (current_date - directory_date).days
+
+        # Add the directory-delta pair to the list
+        dir_delta_pairs.append((directory, dir_delta))
+
+    # Print the list of directory-delta pairs
+#    print("List of directory-delta pairs:")
+#    for pair in dir_delta_pairs:
+#        print(pair)
+
+    if dir_delta_pairs:
+        # Find the closest matching delta
+        closest_delta = min(dir_delta_pairs, key=lambda x: abs(delta - x[1]))[1]
+
+        # Find the directory with the closest matching delta
+        closest_directory = next((pair[0] for pair in dir_delta_pairs if pair[1] == closest_delta), None)
+
+        # Return the closest matching directory-delta pair
+        return closest_directory, closest_delta
+
+    return None, None
+
+
+def newsidlist(old_folder, new_folder):
+    # Get the paths to the old and new CSV files
+    old_csv_file = old_folder + '/gen/all.csv'
+    new_csv_file = new_folder + '/gen/all.csv'
+
+    # Read the old and new CSV files into pandas dataframes
+    old_df = pd.read_csv(old_csv_file)
+    new_df = pd.read_csv(new_csv_file)
+
+    # Identify the rows in the new CSV that have 'sid' not present in the old CSV
+    new_sids = new_df[~new_df['sid'].isin(old_df['sid'])]['sid'].tolist()
+
+    # Return the list of new sids
+    return new_sids
+
+
+def update_newcsv(sidlist, csvfile):
+    # Read the CSV file into a pandas dataframe
+    all_df = pd.read_csv(csvfile)
+
+    # Update the 't' column for matching pids in pidlist
+    all_df.loc[all_df['sid'].isin(sidlist), 't'] = 'new'
+
+    # Write the updated dataframe back to the CSV file
+    all_df.to_csv(csvfile, index=False)

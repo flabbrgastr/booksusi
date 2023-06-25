@@ -36,13 +36,14 @@ if names:
 else:
     print('no files found in ' + lastdir)
 
+pdall = pd.DataFrame()
+
 if "-ci" not in sys.argv:
     # extract gals out of each category file
     # and save them in a separate csv file
     print('⌵ getgals '+lastdir[2:])
     html_files = gl.findhtmls(lastdir)
     #dataframes = []
-    pdall = pd.DataFrame()
 
     for file in html_files:
         category = os.path.splitext(file)[0]
@@ -69,10 +70,23 @@ else:
     if "-s" in sys.argv:
         gl.someStats(pdall)
 
-print('⌵ write csv and html')
+print('⌵ writing... csv and html')
+print('     all.csv')
+
+new_folder, delta0 = gl.matchdir(dir_path, 0)
+old_folder, delta1 = gl.matchdir(dir_path, 2)
+new_folder = dir_path +'/'+new_folder
+old_folder = dir_path +'/'+old_folder
+#print(new_folder,old_folder)
+# Compare the CSV files and create the new CSV file
+sidlist = gl.newsidlist(old_folder, new_folder)
+print('     New: ', len(sidlist), 'since', delta1, 'days ago')
+pdall['sid'] = pdall['sid'].astype(int)
+pdall.loc[pdall['sid'].isin(sidlist), 't'] = 'new'
+
 html_table = gl.convert_dataframe_to_html(pdall)
-#html_table = gallib.df_to_html2(pdall)
 html_file = lastdir+'/gen/'+'all.html'
 with open(html_file, 'w') as hfile:
     hfile.write(html_table)
 shutil.copy2(lastdir+'/gen/'+'all.html', './all.html', follow_symlinks=True)
+print('     all.html')
