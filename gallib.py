@@ -390,6 +390,8 @@ def convert_dataframe_to_html(df):
     current_datetime = datetime.now()
     formatted_datetime = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
     day_of_week = current_datetime.strftime("%A")
+    stringif = lambda column, ifstring, ifempty: column.apply(lambda x: ifstring if isinstance(x, str) and x.strip() != '' else ifempty)
+    stringappend = lambda column, ifstring, ifempty: column.apply(lambda x: x + ifstring if isinstance(x, str) and x.strip() != '' else x + ifempty)
 
     # Sort the DataFrame by index
     df = df.sort_index()
@@ -404,17 +406,14 @@ def convert_dataframe_to_html(df):
     df = df.fillna("")
 
     # emoji and string operations on cells
-#    df['Girl'] = df['Girl'].apply(lambda x: f'{x}<br>')
-#    df['Girl'] = df.apply(lambda row: f'<u>{row["Girl"]}</u>' if isinstance(row['Strasse'], str) and row['Strasse'].strip() != "" else row['Girl'], axis=1)
-#    df.loc[(df['a0'].apply(lambda x: isinstance(x, str) and x.strip() != "")) | (df['a1'].apply(lambda x: isinstance(x, str) and x.strip() != "")), 'Girl'] += ' &#x1F351;'
-#    df.loc[(df['cim'].apply(lambda x: isinstance(x, str) and x.strip() != "")) | (df['cof'].apply(lambda x: isinstance(x, str) and x.strip() != "")), 'Girl'] += ' &#x1f4a6;'
-#    df.loc[(df['Strasse'].apply(lambda x: isinstance(x, str) and x.strip() != "")), 'Girl'] += ' &#x1F3E0;'
-    # Replace any non-empty string in 'a1' column with the peach emoji
-    df['Loc'] = df['Strasse'].apply(lambda x: '🏠' if isinstance(x, str) and x.strip() != "" else '')
-    df.loc[df['a1'].apply(lambda x: isinstance(x, str) and x.strip() != ""), 'a1'] = '🍑'
-    df.loc[df['a0'].apply(lambda x: isinstance(x, str) and x.strip() != ""), 'a0'] = '🍑'
-    df.loc[df['cof'].apply(lambda x: isinstance(x, str) and x.strip() != ""), 'cof'] = '&#x1f4a6;'
-    df.loc[df['cim'].apply(lambda x: isinstance(x, str) and x.strip() != ""), 'cim'] = '&#x1f4a6;'
+    #df.loc[(df['t'].apply(lambda x: isinstance(x, str) and x.strip() != "")), 'Girl'] += '<span style="color: red;"><sup><b>new</b></sup></span>'
+    df.loc[(df['t'].apply(lambda x: isinstance(x, str) and x.strip() != "")), 'Girl'] += '<span style="color: red;"><sup><b>' + df['t'] + '</b></sup></span>'
+    #df['Girl'] = stringappend(df['t'], '*', '')
+    df['Loc'] = stringif(df['Strasse'], '&#8962;', '&#9243;')
+    df['a0'] = stringif(df['a0'], '🍑', '·')
+    df['a1'] = stringif(df['a1'], '🍑', '·')
+    df['cim'] = stringif(df['cim'], '💦', '·')
+    df['cof'] = stringif(df['cof'], '💦', '·')
     
     # combine columns Stadt, Bezirk and Strasse into one column 'Location'
     df['Bezirk'] = df['Bezirk'].apply(lambda x: f'{x}<br>')
@@ -531,7 +530,7 @@ def matchdir(path, delta):
     return None, None
 
 
-def newsidlist(old_folder, new_folder):
+def newsidlist(old_folder, new_folder, column='sid'):
     # Get the paths to the old and new CSV files
     old_csv_file = old_folder + '/gen/all.csv'
     new_csv_file = new_folder + '/gen/all.csv'
@@ -540,19 +539,30 @@ def newsidlist(old_folder, new_folder):
     old_df = pd.read_csv(old_csv_file)
     new_df = pd.read_csv(new_csv_file)
 
-    # Identify the rows in the new CSV that have 'sid' not present in the old CSV
-    new_sids = new_df[~new_df['sid'].isin(old_df['sid'])]['sid'].tolist()
+    # Identify the rows in the new CSV that have the specified column value not present in the old CSV
+    new_values = new_df[~new_df[column].isin(old_df[column])][column].tolist()
 
-    # Return the list of new sids
-    return new_sids
+    # Return the list of new values
+    return new_values
 
 
-def update_newcsv(sidlist, csvfile):
-    # Read the CSV file into a pandas dataframe
-    all_df = pd.read_csv(csvfile)
+def update_dataframe(old_folder, new_folder):
+    # Get the paths to the old and new CSV files
+    old_csv_file = old_folder + '/gen/all.csv'
+    new_csv_file = new_folder + '/gen/all.csv'
 
-    # Update the 't' column for matching pids in pidlist
-    all_df.loc[all_df['sid'].isin(sidlist), 't'] = 'new'
+    # Read the old and new CSV files into pandas dataframes
+    old_df = pd.read_csv(old_csv_file)
+    new_df = pd.read_csv(new_csv_file)
 
-    # Write the updated dataframe back to the CSV file
-    all_df.to_csv(csvfile, index=False)
+    # Merge the old and new dataframes on 'sid'
+    merged_df = pd.merge(old_df, new_df, on='sid', suffixes=('_old', '_new'))
+
+    # Identify the rows where 'Tel' or 'Strasse' has changed
+    changed_rows = merged_df[(merged_df['Tel_old'] != merged_df['Tel_new']) | (merged_df['Strasse_old'] != merged_df['Strasse_new'])]
+
+    # Get the 'sid' values for the changed rows
+    changed_sids = changed_rows['sid'].tolist()
+
+    # Return the list of changed 'sid' values
+    return changed_sids

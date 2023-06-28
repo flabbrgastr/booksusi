@@ -79,14 +79,29 @@ new_folder = dir_path +'/'+new_folder
 old_folder = dir_path +'/'+old_folder
 #print(new_folder,old_folder)
 # Compare the CSV files and create the new CSV file
-sidlist = gl.newsidlist(old_folder, new_folder)
-print('     New: ', len(sidlist), 'since', delta1, 'days ago')
-pdall['sid'] = pdall['sid'].astype(int)
-pdall.loc[pdall['sid'].isin(sidlist), 't'] = 'new'
 
+# Compare the CSV files and create the new CSV file
+new_sids = gl.newsidlist(old_folder, new_folder)
+print('     New: ', len(new_sids), 'since', delta1, 'days ago')
+
+# Get the 'sid' values for rows where 'Tel' or 'Strasse' has changed
+changed_sids = gl.update_dataframe(old_folder, new_folder)
+print('     Changed: ', len(changed_sids), 'since', delta1, 'days ago')
+
+pdall['sid'] = pdall['sid'].astype(int)
+
+# Update the 't' column in pdall for new 'sid' values
+pdall.loc[pdall['sid'].isin(new_sids), 't'] = 'new'
+
+# Update the 't' column in pdall for changed 'sid' values
+pdall.loc[pdall['sid'].isin(changed_sids), 't'] = 'upd'
+
+# Create the HTML table
 html_table = gl.convert_dataframe_to_html(pdall)
 html_file = lastdir+'/gen/'+'all.html'
 with open(html_file, 'w') as hfile:
     hfile.write(html_table)
 shutil.copy2(lastdir+'/gen/'+'all.html', './all.html', follow_symlinks=True)
 print('     all.html')
+# all.html is the file that is used by the webserver
+exit(0)
