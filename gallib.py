@@ -317,16 +317,23 @@ def get_gals(dir_path, category, test=False):
 
 def dfComprehend(dfnew):
   #sort dfnew
-  oldnum=len(dfnew.index)
-  print ('    ',+oldnum,'comprehended to ',end='', flush=True)
-  dfnew = dfnew.sort_values(by=['Girl'], ascending=True)
-  dfnew = dfnew[dfnew["Girl"].str.contains("Trans|trans|TRANS|^ts |TS |^Ts |^Ts_")==False]  # remove trans
-  dfnew = dfnew[dfnew["Short"].str.contains("Trans|trans|TRANS|^ts |TS |^Ts |^Ts_")==False]  # remove trans
-  dfnew = dfnew.groupby(['Girl', 'Tel'], as_index=False).max()
-  newnum=len(dfnew.index)
-  percentage = (oldnum - len(dfnew.index)) / oldnum * 100
-  print(f"{newnum} -{percentage:.0f}%")
-  return dfnew;
+  # Combine the existing patterns with the new one
+    pattern = r"(trans|^ts |^Ts_|real.*doll|doll.*real)"
+    pattern = re.compile(pattern, re.IGNORECASE)  # Makes the pattern case-insensitive
+
+    oldnum=len(dfnew.index)
+    print ('    ',+oldnum,'comprehended to ',end='', flush=True)
+    dfnew = dfnew.sort_values(by=['Girl'], ascending=True)
+    # remove ugly stuff
+    dfnew = dfnew[~(dfnew["Girl"].str.contains(pattern, na=False) 
+                  | dfnew["Short"].str.contains(pattern, na=False))]
+#    dfnew = dfnew[dfnew["Girl"].str.contains(pattern)==False]
+#    dfnew = dfnew[dfnew["Short"].str.contains(pattern)==False]
+    dfnew = dfnew.groupby(['Girl', 'Tel'], as_index=False).max()
+    newnum=len(dfnew.index)
+    percentage = (oldnum - len(dfnew.index)) / oldnum * 100
+    print(f"{newnum} -{percentage:.0f}%")
+    return dfnew;
 
 
 def fancy_print(message, level=1):
@@ -397,29 +404,29 @@ def convert_dataframe_to_html(df):
     df = df.sort_index()
 
     # Add Img column with image tags
-    df.insert(0, 'Img', df['Purl'].apply(lambda x: f'<img src="{x}" style="max-width: 140px; max-height: 140px;">'))
-
     # Add a clickable URL to 'Girl' column with link from 'Gurl' and name from 'Girl', opening in a new tab
+    df.insert(0, 'Img', df['Purl'].apply(lambda x: f'<img src="{x}" style="max-width: 140px; max-height: 140px;">'))
     df['Girl'] = df.apply(lambda row: f'<a href="{row["Gurl"]}" target="_blank" class="no-underline">{row["Girl"]}</a>', axis=1)
 
     # Replace NaN values with empty string
     df = df.fillna("")
+    
+    condition = ((df['a1'].str.len() > 0) | (df['a0'].str.len() > 0)) & (df['Strasse'].str.len() > 0)
+    ahomecount = df[condition].shape[0]
+    asscount = len(df[(df['a1'] == '✓') | (df['a0'] == '✓')])
 
     # emoji and string operations on cells
-    #df.loc[(df['t'].apply(lambda x: isinstance(x, str) and x.strip() != "")), 'Girl'] += '<span style="color: red;"><sup><b>new</b></sup></span>'
     df.loc[(df['t'].apply(lambda x: isinstance(x, str) and x.strip() != "")), 'Girl'] += '<span style="color: red;"><sup><b>' + df['t'] + '</b></sup></span>'
-    #df['Girl'] = stringappend(df['t'], '*', '')
     df['Loc'] = stringif(df['Strasse'], '&#8962;', '&#9243;')
     df['a0'] = stringif(df['a0'], '🍑', '·')
     df['a1'] = stringif(df['a1'], '🍑', '·')
     df['cim'] = stringif(df['cim'], '💦', '·')
     df['cof'] = stringif(df['cof'], '💦', '·')
-    
+
     # combine columns Stadt, Bezirk and Strasse into one column 'Location'
     df['Bezirk'] = df['Bezirk'].apply(lambda x: f'{x}<br>')
     df['Strasse'] = df['Strasse'].apply(lambda x: f'{x}<br>')
     df['Location'] = df['Bezirk'] + df['Strasse']
-
     # Remove Stadt, Bezirk and Strasse columns
     df = df.drop(columns=['Stadt', 'Bezirk', 'Strasse'])
     
@@ -480,7 +487,7 @@ def convert_dataframe_to_html(df):
         </style>
     </head>
     <body>
-        <p>Date: {formatted_datetime}, Time: {day_of_week}, Day: {day_of_week}</p>
+        <p>Date: {formatted_datetime}, Time: {day_of_week}, Day: {day_of_week}, Gals: {len(df)}, As{asscount}, Ah{ahomecount}</p>
         {table_html}
         <script src="https://cdn.jsdelivr.net/gh/tofsjonas/sortable@latest/sortable.min.js"></script>
 
@@ -530,10 +537,25 @@ def matchdir(path, delta):
     return None, None
 
 
-def newsidlist(old_folder, new_folder, column='sid'):
+def newsidlist(old_folder, new_folder, column='sid', dir_path='./data', verbose=False):
+    if isinstance(old_folder, int):
+        # Calculate folder names based on the provided delta values
+        getold_folder, deltaold = matchdir(dir_path, old_folder)
+        old_csv_file = dir_path +'/'+getold_folder + '/gen/all.csv'
+    else:
+        # Get the paths to the old and new CSV files
+        old_csv_file = dir_path +'/'+ old_folder + '/gen/all.csv'
+
+    if isinstance(new_folder, int):
+        # Calculate folder names based on the provided delta values
+        getnew_folder, deltanew = matchdir(dir_path, new_folder)
+        new_csv_file = dir_path +'/'+getnew_folder + '/gen/all.csv'
+    else:
+        # Get the paths to the old and new CSV files
+        new_csv_file = dir_path +'/'+ new_folder + '/gen/all.csv'
+
     # Get the paths to the old and new CSV files
-    old_csv_file = old_folder + '/gen/all.csv'
-    new_csv_file = new_folder + '/gen/all.csv'
+#    new_csv_file = os.path.join(new_folder, 'gen/all.csv')
 
     # Read the old and new CSV files into pandas dataframes
     old_df = pd.read_csv(old_csv_file)
@@ -542,27 +564,61 @@ def newsidlist(old_folder, new_folder, column='sid'):
     # Identify the rows in the new CSV that have the specified column value not present in the old CSV
     new_values = new_df[~new_df[column].isin(old_df[column])][column].tolist()
 
-    # Return the list of new values
+    if verbose:
+        matched_rows = new_df[new_df[column].isin(new_values)]
+        print(f"{len(matched_rows)} Rows from new_df that are not present in old_df:")
+        print(matched_rows)
+        print(f"Old folder delta: {deltaold}")
+        print(f"New folder delta: {deltanew}")
+
     return new_values
 
 
-def update_dataframe(old_folder, new_folder):
-    # Get the paths to the old and new CSV files
-    old_csv_file = old_folder + '/gen/all.csv'
-    new_csv_file = new_folder + '/gen/all.csv'
+def update_dataframe(old_folder, new_folder, dir_path='./data', verbose=False):
+    if isinstance(old_folder, int):
+        # Calculate folder names based on the provided delta values
+        getold_folder, deltaold = matchdir(dir_path, old_folder)
+        old_csv_file = dir_path +'/'+getold_folder + '/gen/all.csv'
+    else:
+        # Get the paths to the old and new CSV files
+        old_csv_file = dir_path +'/'+ old_folder + '/gen/all.csv'
+
+    if isinstance(new_folder, int):
+        # Calculate folder names based on the provided delta values
+        getnew_folder, deltanew = matchdir(dir_path, new_folder)
+        new_csv_file = dir_path +'/'+getnew_folder + '/gen/all.csv'
+    else:
+        # Get the paths to the old and new CSV files
+        new_csv_file = dir_path +'/'+ new_folder + '/gen/all.csv'
 
     # Read the old and new CSV files into pandas dataframes
     old_df = pd.read_csv(old_csv_file)
+    old_df = old_df.fillna("")
+    # Replace NaN values with empty string
+
     new_df = pd.read_csv(new_csv_file)
+    new_df = new_df.fillna("")
 
     # Merge the old and new dataframes on 'sid'
     merged_df = pd.merge(old_df, new_df, on='sid', suffixes=('_old', '_new'))
 
     # Identify the rows where 'Tel' or 'Strasse' has changed
-    changed_rows = merged_df[(merged_df['Tel_old'] != merged_df['Tel_new']) | (merged_df['Strasse_old'] != merged_df['Strasse_new'])]
+    changed_rows = merged_df[
+                             (merged_df['Tel_old'] != merged_df['Tel_new']) 
+                           | (merged_df['Strasse_old'] != merged_df['Strasse_new'])
+                           | (merged_df['Girl_old'] != merged_df['Girl_new'])
+                           ]
 
     # Get the 'sid' values for the changed rows
     changed_sids = changed_rows['sid'].tolist()
+
+    if verbose:
+        # Print the differences in 'Tel' and 'Strasse' columns
+        if not changed_rows.empty:
+            print("Differences in 'Tel' and 'Strasse' columns:")
+            print(changed_rows[['sid', 'Girl_old' ,'Girl_new' ,'Tel_old', 'Tel_new', 'Strasse_old', 'Strasse_new']])
+        else:
+            print("No differences found.")
 
     # Return the list of changed 'sid' values
     return changed_sids

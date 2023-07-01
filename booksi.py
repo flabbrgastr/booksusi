@@ -10,12 +10,19 @@ if "-h" in sys.argv:
     Usage:
         python booksi.py [options]
         -h  help
+        -v  verbose
         -ci csv import instead of html analysis. Faster for testing.
         -s show stats''')
     sys.exit()
 
 # Specify the directory
 dir_path = './data'  # replace with your directory
+
+if "-v" in sys.argv:
+    verbose = True
+else:
+    verbose = False
+
 
 # leave only one, ie the newest, zip file for each date
 pruned_items = gl.prune_items(dir_path, test_mode=False)
@@ -43,7 +50,6 @@ if "-ci" not in sys.argv:
     # and save them in a separate csv file
     print('⌵ getgals '+lastdir[2:])
     html_files = gl.findhtmls(lastdir)
-    #dataframes = []
 
     for file in html_files:
         category = os.path.splitext(file)[0]
@@ -73,28 +79,18 @@ else:
 print('⌵ writing... csv and html')
 print('     all.csv')
 
-new_folder, delta0 = gl.matchdir(dir_path, 0)
-old_folder, delta1 = gl.matchdir(dir_path, 2)
-new_folder = dir_path +'/'+new_folder
-old_folder = dir_path +'/'+old_folder
-#print(new_folder,old_folder)
-# Compare the CSV files and create the new CSV file
-
-# Compare the CSV files and create the new CSV file
-new_sids = gl.newsidlist(old_folder, new_folder)
-print('     New: ', len(new_sids), 'since', delta1, 'days ago')
-
-# Get the 'sid' values for rows where 'Tel' or 'Strasse' has changed
-changed_sids = gl.update_dataframe(old_folder, new_folder)
-print('     Changed: ', len(changed_sids), 'since', delta1, 'days ago')
+new = 0
+old = 5
 
 pdall['sid'] = pdall['sid'].astype(int)
 
-# Update the 't' column in pdall for new 'sid' values
-pdall.loc[pdall['sid'].isin(new_sids), 't'] = 'new'
-
-# Update the 't' column in pdall for changed 'sid' values
-pdall.loc[pdall['sid'].isin(changed_sids), 't'] = 'upd'
+for old in range(old, new, -1):
+    new_sids = gl.newsidlist(old ,new ,verbose=verbose)
+    changed_sids = gl.update_dataframe(old, new, verbose=verbose)
+    print(f'     New{old} {len(new_sids)} : Upd{old} {len(changed_sids)}' )
+    # Update the 't' column in pdall for new and changed 'sid' values
+    pdall.loc[pdall['sid'].isin(new_sids), 't'] = 'new'+str(old)
+    pdall.loc[pdall['sid'].isin(changed_sids), 't'] = 'upd'+str(old)
 
 # Create the HTML table
 html_table = gl.convert_dataframe_to_html(pdall)
