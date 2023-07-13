@@ -18,9 +18,20 @@ window.onload = function () {
         console.log(blockParts);
         console.log(addressParts);
 
-        let street = addressParts[0];
-        let zipCode = addressParts[1];
-        let city = addressParts[2];
+
+        // the last address part is countrycode, remove it
+        // the second last address part is city
+        let city = addressParts[addressParts.length - 1];
+        // the third last address part is zip code
+        let zipCode = addressParts[addressParts.length - 2];
+        // the rest is street, it may be empty
+        let street = '';
+        if (addressParts.length > 3) {
+            street = addressParts.slice(0, addressParts.length - 2).join(', ');
+        } else {
+            street = '';
+        }
+
         let anature;
         let ana;
         let cim;
@@ -30,9 +41,13 @@ window.onload = function () {
         console.log(zipCode);
         console.log(city);
 
-        // Combine the elements to form the address
-        //        address = addressParts[2];
-        address = `${street}, ${zipCode} ${city}`;
+        // check if street is not empty
+        if (street) {
+            address = `${street}, ${zipCode} ${city}`;
+        } else {
+            // if no street, address is emtpy
+            address = 'Escort';
+        }
     }
 
     let phone = '';
@@ -113,10 +128,10 @@ window.onload = function () {
     // Set the overlay text
     overlay.innerHTML = `
         <div>
-            <p>Name: ${name}</p>
-            <p>Service: ${keywordlist}</p>
-            <p>Address: ${address}</p>
-            <p>Phone: ${phone}</p>
+            <p>${name}</p>
+            <p>${keywordlist}</p>
+            <p>${address}</p>
+            <p>${phone}</p>
         </div>
     `;
 
