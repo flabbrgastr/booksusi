@@ -10,24 +10,24 @@ window.onload = function () {
     let addressElement = document.querySelector(ADDRESS_SELECTOR);
     console.log(addressElement);
     let address = 'N/A';
+
     if (addressElement) {
         // Extract and clean up the street name, zip code, and city
         let blockParts = addressElement.textContent.split('\n');
-        //        let addressParts = blockParts[2].split(',');
-        let addressParts = blockParts[2].split(',').map(part => part.trim());  // Trim each part
+        let addressParts = blockParts[2].split(',');
+        //        addressParts = addressParts.split(',').map(part => part.trim());  // Trim each part
         console.log(blockParts);
         console.log(addressParts);
 
 
-        // the last address part is countrycode, remove it
         // the second last address part is city
-        let city = addressParts[addressParts.length - 1];
+        let city = addressParts[addressParts.length - 2];
         // the third last address part is zip code
-        let zipCode = addressParts[addressParts.length - 2];
+        let zipCode = addressParts[addressParts.length - 3];
         // the rest is street, it may be empty
         let street = '';
         if (addressParts.length > 3) {
-            street = addressParts.slice(0, addressParts.length - 2).join(', ');
+            street = addressParts[addressParts.length - 4];
         } else {
             street = '';
         }
@@ -108,8 +108,6 @@ window.onload = function () {
     keywordlist = keywordlist.replace('CIM', '💦');
 
 
-
-
     // Create the overlay
     const overlay = document.createElement('div');
     overlay.style.position = 'fixed';
@@ -126,14 +124,15 @@ window.onload = function () {
     overlay.style.fontSize = '1em';
 
     // Set the overlay text
+    let icon = address === 'Escort' ? '🚗' : '🛌';
     overlay.innerHTML = `
-        <div>
-            <p>${name}</p>
-            <p>${keywordlist}</p>
-            <p>${address}</p>
-            <p>${phone}</p>
-        </div>
-    `;
+    <div>
+        <p>${name}</p>
+        <p>${icon}   ${keywordlist}</p>
+        <p style="margin-left: 1em; font-size: 0.8em;">${address}</p>
+        <p style="margin-left: 1em; font-size: 0.8em;">${phone}</p>
+    </div>
+`;
 
     // Add the overlay to the body
     document.body.appendChild(overlay);
