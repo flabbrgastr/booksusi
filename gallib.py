@@ -318,7 +318,7 @@ def get_gals(dir_path, category, test=False):
 def dfComprehend(dfnew):
   #sort dfnew
   # Combine the existing patterns with the new one
-    pattern = r"(trans|^ts |^Ts_|real.*doll|doll.*real)"
+    pattern = r"(trans|tv|^ts |^Ts_|real.*doll|sex.*puppe|doll.*real)"
     pattern = re.compile(pattern, re.IGNORECASE)  # Makes the pattern case-insensitive
 
     oldnum=len(dfnew.index)
@@ -566,7 +566,7 @@ def newsidlist(old_folder, new_folder, column='sid', dir_path='./data', verbose=
 
     if verbose:
         matched_rows = new_df[new_df[column].isin(new_values)]
-        print(f"{len(matched_rows)} Rows from new_df that are not present in old_df:")
+        print(f"{len(matched_rows)} New {deltanew} since-{deltaold} ")
         print(matched_rows)
         print(f"Old folder delta: {deltaold}")
         print(f"New folder delta: {deltanew}")

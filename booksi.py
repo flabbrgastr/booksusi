@@ -89,8 +89,8 @@ for old in range(old, new, -1):
     changed_sids = gl.update_dataframe(old, new, verbose=verbose)
     print(f'     New{old} {len(new_sids)} : Upd{old} {len(changed_sids)}' )
     # Update the 't' column in pdall for new and changed 'sid' values
-    pdall.loc[pdall['sid'].isin(new_sids), 't'] = 'new'+str(old)
-    pdall.loc[pdall['sid'].isin(changed_sids), 't'] = 'upd'+str(old)
+    pdall.loc[pdall['sid'].isin(new_sids), 't'] = 'new'+str(old-1)
+    pdall.loc[pdall['sid'].isin(changed_sids), 't'] = 'upd'+str(old-1)
 
 # Create the HTML table
 html_table = gl.convert_dataframe_to_html(pdall)
