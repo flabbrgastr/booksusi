@@ -87,10 +87,10 @@ window.onload = function () {
 
     // if keywordlist includes keywords[0] but not keywords[1], add '.' after keywords[0]
     if (keywordlist.includes(keywords[0]) && !keywordlist.includes(keywords[1])) {
-        keywordlist = keywordlist.replace(keywords[0], keywords[0] + '.');
+        keywordlist = keywordlist.replace(keywords[0], keywords[0] + '. ');
     } else if (keywordlist.includes(keywords[1]) && !keywordlist.includes(keywords[0])) {
         // add '.' before keywords[1]
-        keywordlist = keywordlist.replace(keywords[1], '.' + keywords[1]);
+        keywordlist = keywordlist.replace(keywords[1], keywords[1] + 'blank ');
     }
 
     // if keywordlist includes CIM but not COF, add mouth emoji after CIM
@@ -132,8 +132,9 @@ window.onload = function () {
     // Find the element before which to insert the box
     //const insertAfterElement = document.querySelector('.sid_girl_title_inner h1');
     const insertBeforeElement = document.querySelector('.sb_block_inner.girl-body-top');    
-    const scoreSpan = document.querySelector('.girl-score');
-
+//    const scoreSpan = document.querySelector('.girl-score');
+    const scoreSpan = document.querySelector('.sid_girl_title_inner');
+    
     // Insert the box after the found element
     if (insertBeforeElement) {
         insertBeforeElement.insertAdjacentElement('beforebegin', box);
@@ -149,10 +150,17 @@ window.onload = function () {
         // Assuming 'icon' and 'keywordlist' are variables containing the content you want to insert
         // Create a new <p> element to insert
         const newElement = document.createElement('div');
-//        const breakElement = document.createElement('br'); // Create a new BR element
+//        newElement.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+
         newElement.innerHTML = `${icon} ${keywordlist}`;
-//        const brElement = document.createElement('br');
-//        newElement.parentNode.insertBefore(brElement, newElement.nextSibling);
+        newElement.style.fontSize = '36px';
+        // if icon contains a peach emoji, make it red
+        if (keywordlist.includes('🍑')) {
+            newElement.style.backgroundColor = 'orange';
+            if (icon.includes('🛌')) {
+                newElement.style.backgroundColor = 'red';
+            }
+        }
 
         // Insert the new <p> element after the <br> if it exists, otherwise directly after the '.girl-score'
         if (brElement && brElement.tagName === 'BR') {
