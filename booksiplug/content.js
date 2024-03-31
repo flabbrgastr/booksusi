@@ -108,32 +108,62 @@ window.onload = function () {
     keywordlist = keywordlist.replace('CIM', '💦');
 
 
-    // Create the overlay
-    const overlay = document.createElement('div');
-    overlay.style.position = 'fixed';
-    overlay.style.left = 0;
-    overlay.style.top = '100px';
-    overlay.style.width = '30%';
-    overlay.style.height = 'calc(50% - 100px)';
-    overlay.style.backgroundColor = 'rgba(0,0,0,0.7)';
-    overlay.style.color = 'white';
-    overlay.style.display = 'flex';
-    overlay.style.justifyContent = 'center';
-    overlay.style.alignItems = 'center';
-    overlay.style.zIndex = 10000;
-    overlay.style.fontSize = '1em';
-
     // Set the overlay text
     let icon = address === 'Escort' ? '🚗' : '🛌';
-    overlay.innerHTML = `
-    <div>
-        <p>${name}</p>
-        <p>${icon}   ${keywordlist}</p>
-        <p style="margin-left: 1em; font-size: 0.8em;">${address}</p>
-        <p style="margin-left: 1em; font-size: 0.8em;">${phone}</p>
-    </div>
-`;
 
-    // Add the overlay to the body
-    document.body.appendChild(overlay);
+    // add a textbox
+    // Create the box element
+    const box = document.createElement('div');
+    box.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    box.style.color = 'white';
+    box.style.padding = '10px';
+    box.style.fontSize = '1em';
+    box.style.marginTop = '10px'; // Adjust as needed
+
+    // Set the content of the box
+    // let icon = address === 'Escort' ? '🚗' : '🛌';
+    box.innerHTML = `
+        <p>${icon}   ${keywordlist}</p>
+        <p>${name}</p>
+        <p style="font-size: 0.8em;">${address}</p>
+        <p style="font-size: 0.8em;">${phone}</p>
+    `;
+
+    // Find the element before which to insert the box
+    //const insertAfterElement = document.querySelector('.sid_girl_title_inner h1');
+    const insertBeforeElement = document.querySelector('.sb_block_inner.girl-body-top');    
+    const scoreSpan = document.querySelector('.girl-score');
+
+    // Insert the box after the found element
+    if (insertBeforeElement) {
+        insertBeforeElement.insertAdjacentElement('beforebegin', box);
+    } else {
+        // Handle case where the target element is not found
+        console.error('Element not found.');
+    }
+
+    if (scoreSpan) {
+        // Assuming the <br> immediately follows the '.girl-score' span
+        const brElement = scoreSpan.nextElementSibling;
+
+        // Assuming 'icon' and 'keywordlist' are variables containing the content you want to insert
+        // Create a new <p> element to insert
+        const newElement = document.createElement('div');
+//        const breakElement = document.createElement('br'); // Create a new BR element
+        newElement.innerHTML = `${icon} ${keywordlist}`;
+//        const brElement = document.createElement('br');
+//        newElement.parentNode.insertBefore(brElement, newElement.nextSibling);
+
+        // Insert the new <p> element after the <br> if it exists, otherwise directly after the '.girl-score'
+        if (brElement && brElement.tagName === 'BR') {
+            brElement.insertAdjacentElement('afterend', newElement);
+        } else {
+            scoreSpan.insertAdjacentElement('afterend', newElement);
+        }
+    } else {
+        // Handle case where the target element is not found
+        console.error('Element not found.');
+    }
+
+
 };
