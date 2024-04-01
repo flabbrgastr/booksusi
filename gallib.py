@@ -417,7 +417,8 @@ def convert_dataframe_to_html(df):
 
     # emoji and string operations on cells
     df.loc[(df['t'].apply(lambda x: isinstance(x, str) and x.strip() != "")), 'Girl'] += '<span style="color: red;"><sup><b>' + df['t'] + '</b></sup></span>'
-    df['Loc'] = stringif(df['Strasse'], '&#8962;', '&#9243;')
+#    df['Loc'] = stringif(df['Strasse'], '&#8962;', '&#9243;')
+    df['Loc'] = stringif(df['Strasse'], '🛌', '🚗')
     df['a0'] = stringif(df['a0'], '🍑', '·')
     df['a1'] = stringif(df['a1'], '🍑', '·')
     df['cim'] = stringif(df['cim'], '💦', '·')
