@@ -557,9 +557,16 @@ def newsidlist(old_folder, new_folder, column='sid', dir_path='./data', verbose=
 
     # Get the paths to the old and new CSV files
 #    new_csv_file = os.path.join(new_folder, 'gen/all.csv')
+    # Check if the old CSV file exists
+    if not os.path.exists(old_csv_file):
+        if verbose:
+            print(f"Old CSV file not found: {old_csv_file}. Creating an empty DataFrame.")
+        old_df = pd.DataFrame(columns=[column])  # Create an empty DataFrame with the specified column
+    else:
+        old_df = pd.read_csv(old_csv_file)
 
     # Read the old and new CSV files into pandas dataframes
-    old_df = pd.read_csv(old_csv_file)
+#    old_df = pd.read_csv(old_csv_file)
     new_df = pd.read_csv(new_csv_file)
 
     # Identify the rows in the new CSV that have the specified column value not present in the old CSV
@@ -593,8 +600,15 @@ def update_dataframe(old_folder, new_folder, dir_path='./data', verbose=False):
         new_csv_file = dir_path +'/'+ new_folder + '/gen/all.csv'
 
     # Read the old and new CSV files into pandas dataframes
-    old_df = pd.read_csv(old_csv_file)
-    old_df = old_df.fillna("")
+
+    # Check if the old CSV file exists
+    if not os.path.exists(old_csv_file):
+        if verbose:
+            print(f"Old CSV file not found: {old_csv_file}. Creating an empty DataFrame.")
+        old_df = pd.DataFrame(columns=['sid', 'Girl', 'Tel', 'Strasse'])  # Create an empty DataFrame with the necessary columns
+    else:
+        old_df = pd.read_csv(old_csv_file)
+        old_df = old_df.fillna("")  # Replace NaN values with empty string
     # Replace NaN values with empty string
 
     new_df = pd.read_csv(new_csv_file)
