@@ -10,17 +10,28 @@ window.onload = function () {
     let addressElement = document.querySelector(ADDRESS_SELECTOR);
     console.log(addressElement);
     let address = 'N/A';
+
     if (addressElement) {
         // Extract and clean up the street name, zip code, and city
         let blockParts = addressElement.textContent.split('\n');
-        //        let addressParts = blockParts[2].split(',');
-        let addressParts = blockParts[2].split(',').map(part => part.trim());  // Trim each part
+        let addressParts = blockParts[2].split(',');
+        //        addressParts = addressParts.split(',').map(part => part.trim());  // Trim each part
         console.log(blockParts);
         console.log(addressParts);
 
-        let street = addressParts[0];
-        let zipCode = addressParts[1];
-        let city = addressParts[2];
+
+        // the second last address part is city
+        let city = addressParts[addressParts.length - 2];
+        // the third last address part is zip code
+        let zipCode = addressParts[addressParts.length - 3];
+        // the rest is street, it may be empty
+        let street = '';
+        if (addressParts.length > 3) {
+            street = addressParts[addressParts.length - 4];
+        } else {
+            street = '';
+        }
+
         let anature;
         let ana;
         let cim;
@@ -30,9 +41,13 @@ window.onload = function () {
         console.log(zipCode);
         console.log(city);
 
-        // Combine the elements to form the address
-        //        address = addressParts[2];
-        address = `${street}, ${zipCode} ${city}`;
+        // check if street is not empty
+        if (street) {
+            address = `${street}, ${zipCode} ${city}`;
+        } else {
+            // if no street, address is emtpy
+            address = 'Escort';
+        }
     }
 
     let phone = '';
@@ -72,10 +87,10 @@ window.onload = function () {
 
     // if keywordlist includes keywords[0] but not keywords[1], add '.' after keywords[0]
     if (keywordlist.includes(keywords[0]) && !keywordlist.includes(keywords[1])) {
-        keywordlist = keywordlist.replace(keywords[0], keywords[0] + '.');
+        keywordlist = keywordlist.replace(keywords[0], keywords[0] + '. ');
     } else if (keywordlist.includes(keywords[1]) && !keywordlist.includes(keywords[0])) {
         // add '.' before keywords[1]
-        keywordlist = keywordlist.replace(keywords[1], '.' + keywords[1]);
+        keywordlist = keywordlist.replace(keywords[1], keywords[1] + 'blank ');
     }
 
     // if keywordlist includes CIM but not COF, add mouth emoji after CIM
@@ -93,33 +108,70 @@ window.onload = function () {
     keywordlist = keywordlist.replace('CIM', '💦');
 
 
-
-
-    // Create the overlay
-    const overlay = document.createElement('div');
-    overlay.style.position = 'fixed';
-    overlay.style.left = 0;
-    overlay.style.top = '100px';
-    overlay.style.width = '30%';
-    overlay.style.height = 'calc(50% - 100px)';
-    overlay.style.backgroundColor = 'rgba(0,0,0,0.7)';
-    overlay.style.color = 'white';
-    overlay.style.display = 'flex';
-    overlay.style.justifyContent = 'center';
-    overlay.style.alignItems = 'center';
-    overlay.style.zIndex = 10000;
-    overlay.style.fontSize = '1em';
-
     // Set the overlay text
-    overlay.innerHTML = `
-        <div>
-            <p>Name: ${name}</p>
-            <p>Service: ${keywordlist}</p>
-            <p>Address: ${address}</p>
-            <p>Phone: ${phone}</p>
-        </div>
+    let icon = address === 'Escort' ? '🚗' : '🛌';
+
+    // add a textbox
+    // Create the box element
+    const box = document.createElement('div');
+    box.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    box.style.color = 'white';
+    box.style.padding = '10px';
+    box.style.fontSize = '1em';
+    box.style.marginTop = '10px'; // Adjust as needed
+
+    // Set the content of the box
+    // let icon = address === 'Escort' ? '🚗' : '🛌';
+    box.innerHTML = `
+        <p>${icon}   ${keywordlist}</p>
+        <p>${name}</p>
+        <p style="font-size: 0.8em;">${address}</p>
+        <p style="font-size: 0.8em;">${phone}</p>
     `;
 
-    // Add the overlay to the body
-    document.body.appendChild(overlay);
+    // Find the element before which to insert the box
+    //const insertAfterElement = document.querySelector('.sid_girl_title_inner h1');
+    const insertBeforeElement = document.querySelector('.sb_block_inner.girl-body-top');    
+//    const scoreSpan = document.querySelector('.girl-score');
+    const scoreSpan = document.querySelector('.sid_girl_title_inner');
+    
+    // Insert the box after the found element
+    if (insertBeforeElement) {
+        insertBeforeElement.insertAdjacentElement('beforebegin', box);
+    } else {
+        // Handle case where the target element is not found
+        console.error('Element not found.');
+    }
+
+    if (scoreSpan) {
+        // Assuming the <br> immediately follows the '.girl-score' span
+        const brElement = scoreSpan.nextElementSibling;
+
+        // Assuming 'icon' and 'keywordlist' are variables containing the content you want to insert
+        // Create a new <p> element to insert
+        const newElement = document.createElement('div');
+//        newElement.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+
+        newElement.innerHTML = `${icon} ${keywordlist}`;
+        newElement.style.fontSize = '36px';
+        // if icon contains a peach emoji, make it red
+        if (keywordlist.includes('🍑')) {
+            newElement.style.backgroundColor = 'orange';
+            if (icon.includes('🛌')) {
+                newElement.style.backgroundColor = 'red';
+            }
+        }
+
+        // Insert the new <p> element after the <br> if it exists, otherwise directly after the '.girl-score'
+        if (brElement && brElement.tagName === 'BR') {
+            brElement.insertAdjacentElement('afterend', newElement);
+        } else {
+            scoreSpan.insertAdjacentElement('afterend', newElement);
+        }
+    } else {
+        // Handle case where the target element is not found
+        console.error('Element not found.');
+    }
+
+
 };
