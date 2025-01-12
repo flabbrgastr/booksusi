@@ -442,6 +442,7 @@ def convert_dataframe_to_html(df):
     html = f'''
     <html>
     <head>
+	<meta charset="UTF-8">
         <style>
             table {{
                 font-family: Arial, sans-serif;
