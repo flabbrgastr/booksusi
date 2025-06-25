@@ -234,14 +234,18 @@ def get_gals(dir_path, category, test=False):
         girl_name = girl.find('h4').get_text(strip=True)
 
         location = girl.find("div", class_="g-location") # find the div element with class 'g-location'
-        hrefs = location.find_all("a")
-        stadt = hrefs[0].get_text() # get the text of the first element and assign it to stadt
-        bezirk = hrefs[1].get_text() # get the text of the second element and assign it to bezirk
-        try:
-            strasse = hrefs[2].get_text() # get the text of the third element and assign it to 
-        except:
-            strasse = ''
-
+        hrefs = location.find_all("a") if location else []
+        
+        # Initialize location variables with default values
+        stadt = bezirk = strasse = ""
+        
+        # Get location elements if available
+        if len(hrefs) > 0:
+            stadt = hrefs[0].get_text()
+        if len(hrefs) > 1:
+            bezirk = hrefs[1].get_text()
+        if len(hrefs) > 2:
+            strasse = hrefs[2].get_text()
         try:
             fancount = girl.select_one("span[id*=girl-fancount]").text
         except:
